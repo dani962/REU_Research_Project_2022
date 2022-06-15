@@ -6,40 +6,61 @@ library(dplyr)
 library(ggrepel)
 library(ggthemes)
 
-gso.fire <- read_csv("C:/Users/dmbut/Dropbox/PC/Downloads/Greensboro_Fire_Incidents.csv")
+#loading dataset
+gso.fire <- read_csv("Greensboro_Fire_Incidents.csv")
 
-?lubridate
+#filtering for incidents prior to June 1st 2022
+gso.fire = 
+  gso.fire %>%
+  mutate(AlarmDate2 = make_date(Year, Month, Day)) %>%
+  filter(AlarmDate2 < '2022-06-01')
 
-#convert to Period object
-call_process_period <- lubridate::hms(gso.fire$CallProcessingTime)
+#get the count of incidents by property type
+gso.fire %>%
+  count(PropertyUse, sort=TRUE) %>%
+  head(10)
 
-#converted call process time from hms to seconds
-call_process_seconds <- period_to_seconds(call_process_period)
+#filter for property type 1-2 family dwellings
+gso.fire = gso.fire %>%
+  filter(PropertyUse == '419 - 1 or 2 family dwelling')
 
-call_process_data_day <- data.frame(index = gso.fire$DayOfWeek, var1 = call_process_seconds)
+#convert to call process time to seconds and add to gso.fire
+gso.fire = gso.fire %>%
+  mutate(call_process_period = lubridate::hms(CallProcessingTime), 
+         call_process_seconds = period_to_seconds(call_process_period))
 
-#...
-#some line graphs for call process time and response time
-#...
+#histogram of call process seconds vs count
+gso.fire %>% 
+  filter(call_process_seconds < 500) %>%
+  ggplot(aes(x = call_process_seconds)) +
+  geom_histogram()
 
-ggplot(call_process_data_day, aes(index, var1, color = index)) +
-  geom_line(size = 2) +
-  xlab("Days of Week") +
+#density plot of call process seconds
+gso.fire %>% 
+  filter(call_process_seconds < 500) %>%
+  ggplot(aes(x = call_process_seconds)) +
+  geom_density()
+
+#box plot of days of the week vs call process time
+gso.fire %>%
+  ggplot(aes(x = DayOfWeek, y = call_process_seconds, fill = DayOfWeek)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Days of the Week") +
   ylab("Total Call Process Time") +
-  ggtitle("Days of Week vs Call Process Time")
+  ggtitle("Days of the Week vs Call Process Time")
 
-call_process_data_shift <- data.frame(index = gso.fire$shift, var1 = call_process_seconds)
-
-ggplot(call_process_data_shift, aes(index, var1, color = index)) +
-  geom_line(size = 2) +
+#bar graph of work shift and call process time
+gso.fire %>%
+  ggplot(aes(x = shift, y = call_process_seconds, fill = shift)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Work Shifts") +
-  ylab("Total Call Process Time") +
   ggtitle("Work Shifts vs Total Call Process Time")
 
-call_process_data_month <- data.frame(index = gso.fire$Month, var1 = call_process_seconds)
-
-ggplot(call_process_data_month, aes(index, var1)) +
-  geom_line(color = "blue") +
+#bar graph of month and call process time
+gso.fire %>%
+  ggplot(aes(x = Month, fill = Month)) +
+  geom_bar(show.legend = FALSE) +
   xlab("Month") +
   ylab("Total Call Process Time") +
   ggtitle("Month vs Total Call Process Time")
@@ -48,35 +69,30 @@ ggplot(call_process_data_month, aes(index, var1)) +
 #now looking at Response Time
 #...
 
-#convert to Period object
-response_time_period <- lubridate::hms(gso.fire$ResponseTime)
+#convert response time to seconds and add to gso.fire
+gso.fire = gso.fire %>%
+  mutate(response_time_period = lubridate::hms(ResponseTime),
+         response_time_seconds = period_to_seconds(response_time_period))
 
-class(response_time_period)
-
-#converted response time from hms to seconds
-response_time_seconds <- period_to_seconds(response_time_period)
-
-response_time_data_day <- data.frame(index = gso.fire$DayOfWeek, var1 = response_time_seconds)
-
-ggplot(response_time_data_day, aes(index, var1, color = index)) +
-  geom_line(size = 2) +
-  xlab("Days of Week") +
+#bar graph of days of the week vs response time
+gso.fire %>%
+  ggplot(aes(x = DayOfWeek, y = response_time_seconds, fill = DayOfWeek)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlab("Days of the Week") +
   ylab("Response Time") +
-  ggtitle("Days of Week vs Response Time")
+  ggtitle("Days of the Week vs response time")
 
-response_time_data_shift <- data.frame(index = gso.fire$shift, var1 = response_time_seconds)
-
-ggplot(response_time_data_shift, aes(index, var1, color = index)) +
-  geom_line(size = 2) +
+#bar graph of work shift vs response time
+gso.fire %>%
+  ggplot(aes(x = shift, y = response_time_seconds, fill = shift)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Work Shifts") +
   ylab("Response Time") +
   ggtitle("Work Shifts vs Response Time")
 
-response_time_data_month <- data.frame(index = gso.fire$Month, var1 = response_time_seconds)
-
-# one row was missing values for this graph so it was automatically removed
-ggplot(response_time_data_month, aes(index, var1)) +
-  geom_line(color = "blue") +
+gso.fire %>%
+  ggplot(aes(x = Month, y = response_time_seconds, fill = Month)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Month") +
   ylab("Response Time") +
   ggtitle("Month vs Response Time")
@@ -85,12 +101,10 @@ ggplot(response_time_data_month, aes(index, var1)) +
 #now looking at total response time
 #...
 
-#convert to Period object
-#some strings failed to parse (were some data NA?)
-total_response_period <- lubridate::hms(gso.fire$TotalResponseTime)
-
-#converted total response time from hms to seconds
-total_response_seconds <- period_to_seconds(total_response_period)
+#convert total response time to seconds and add to gso.fire
+gso.fire = gso.fire %>%
+  mutate(total_response_period = lubridate::hms(TotalResponseTime),
+         total_response_seconds = period_to_seconds(total_response_period))
 
 #data frame of day of week and total response time
 total_response_time_data_day <- data.frame(index = gso.fire$DayOfWeek, var1 = total_response_seconds)
@@ -124,18 +138,25 @@ ggplot(total_response_time_data_month, aes(index, var1)) +
 #now making a histogram for total response time
 #...
 
+
 #data frame of week and total response time
-total_response_time_data_week <- data.frame(index = gso.fire$Week, var1 = total_response_seconds)
+total_response_time_data1 <- data.frame(index = gso.fire$Week, var1 = total_response_seconds)
+
 
 #histogram of week in the year vs the count of total response time
-ggplot(total_response_time_data_week, aes(x = index)) +
+ggplot(total_response_time_data1, aes(x = index)) +
   geom_histogram(color = "black", fill = "light blue", bins = 52) +
   xlab("Week in the year") +
   ggtitle("Week in the year vs Count")
 
+
+#data frame of day of week and total response time
+total_response_time_data_day <- data.frame(index = gso.fire$DayOfWeek, var1 = total_response_seconds)
+
 #issue that x is discrete
 ggplot(total_response_time_data_day, aes(x = index)) +
   geom_histogram(stat = "count",color = "black", fill = "light blue")
+#geom_bar
 
 ggplot(total_response_time_data_day, aes(x = index, y = total_response_seconds)) +
   geom_col(color = "light blue") +
@@ -144,6 +165,9 @@ ggplot(total_response_time_data_day, aes(x = index, y = total_response_seconds))
 
 
 #now working on histogram for shift and total response time
+
+#data frame of work shift and total response time
+total_response_time_data_shift <- data.frame(index = gso.fire$shift, var1 = total_response_seconds)
 
 #issue that x is discrete
 ggplot(total_response_time_data_shift, aes(x = index)) +
@@ -158,6 +182,10 @@ ggplot(total_response_time_data_shift, aes(x = index, y = total_response_seconds
 
 
 #now working on histogram for month and total response time
+
+#data frame of month and total response time
+#20430 rows containging missing values removed
+total_response_time_data_month <- data.frame(index = gso.fire$Month, var1 = total_response_seconds)
 
 #issue that x is discrete
 ggplot(total_response_time_data_month, aes(x = index)) +
@@ -174,6 +202,7 @@ ggplot(total_response_time_data_month, aes(x = index, y = total_response_seconds
 #...
 #now looking at number of alarms each day
 #...
+
 
 alarms_per_day_data <- data.frame(index = gso.fire$AlarmDate, var1 = gso.fire$NumberOfAlarms)
 
