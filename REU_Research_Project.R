@@ -22,13 +22,15 @@ call_process_data_day <- data.frame(index = gso.fire$DayOfWeek, var1 = call_proc
 #some line graphs for call process time and response time
 #...
 
-ggplot(df1, aes(index, var1, color = index)) +
+ggplot(call_process_data_day, aes(index, var1, color = index)) +
   geom_line(size = 2) +
   xlab("Days of Week") +
   ylab("Total Call Process Time") +
   ggtitle("Days of Week vs Call Process Time")
 
-ggplot(df2, aes(index, var1, color = index)) +
+call_process_data_shift <- data.frame(index = gso.fire$shift, var1 = call_process_seconds)
+
+ggplot(call_process_data_shift, aes(index, var1, color = index)) +
   geom_line(size = 2) +
   xlab("Work Shifts") +
   ylab("Total Call Process Time") +
@@ -36,7 +38,7 @@ ggplot(df2, aes(index, var1, color = index)) +
 
 call_process_data_month <- data.frame(index = gso.fire$Month, var1 = call_process_seconds)
 
-ggplot(df3, aes(index, var1)) +
+ggplot(call_process_data_month, aes(index, var1)) +
   geom_line(color = "blue") +
   xlab("Month") +
   ylab("Total Call Process Time") +
@@ -56,7 +58,7 @@ response_time_seconds <- period_to_seconds(response_time_period)
 
 response_time_data_day <- data.frame(index = gso.fire$DayOfWeek, var1 = response_time_seconds)
 
-ggplot(df1, aes(index, var1, color = index)) +
+ggplot(response_time_data_day, aes(index, var1, color = index)) +
   geom_line(size = 2) +
   xlab("Days of Week") +
   ylab("Response Time") +
@@ -64,7 +66,7 @@ ggplot(df1, aes(index, var1, color = index)) +
 
 response_time_data_shift <- data.frame(index = gso.fire$shift, var1 = response_time_seconds)
 
-ggplot(df2, aes(index, var1, color = index)) +
+ggplot(response_time_data_shift, aes(index, var1, color = index)) +
   geom_line(size = 2) +
   xlab("Work Shifts") +
   ylab("Response Time") +
@@ -72,8 +74,8 @@ ggplot(df2, aes(index, var1, color = index)) +
 
 response_time_data_month <- data.frame(index = gso.fire$Month, var1 = response_time_seconds)
 
-# 1 row was missing values for this graph so it was automatically removed
-ggplot(df3, aes(index, var1)) +
+# one row was missing values for this graph so it was automatically removed
+ggplot(response_time_data_month, aes(index, var1)) +
   geom_line(color = "blue") +
   xlab("Month") +
   ylab("Response Time") +
