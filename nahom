@@ -1,0 +1,97 @@
+#NAHOM
+rm(list=ls())
+#check working directory
+getwd()
+
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(lubridate)
+library(ggthemes)
+library(ggplot2)
+?ggplot2
+
+#importing .csv file
+gso.fire = read.csv ("Greensboro_Fire_Incidents.csv", header = TRUE, sep = ",")
+
+class(gso.fire)
+dim(gso.fire)
+class(gso.fire$CallProcessingTime)
+
+gso.fire
+
+?lubridate
+
+class(Gfires$TotalResponseTime)
+?seconds
+# Call Processing time into seconds
+call_process_period <- lubridate::hms(gso.fire$CallProcessingTime)
+
+call_process_seconds <- period_to_seconds(call_process_period)
+
+call_process_seconds
+
+#Response Time into seconds
+
+response_time_period <- lubridate::hms(gso.fire$ResponseTime)
+
+response_time_seconds <- period_to_seconds(response_time_period)
+
+response_time_seconds
+
+#Total Response time in seconds
+
+total_response_period <- lubridate::hms(gso.fire$TotalResponseTime)
+
+total_response_seconds <- period_to_seconds(total_response_period)
+
+total_response_seconds
+
+glimpse(gso.fire)
+
+
+#averages of data
+mean(total_response_seconds, na.rm=TRUE) 
+mean(call_process_seconds, na.rm=TRUE)
+mean(response_time_seconds, na.rm=TRUE)
+
+#creating data frames for variables vs trs
+trs_month_df = data.frame(index = gso.fire$Month, var1 = total_response_seconds) 
+trs_shift_df = data.frame(index = gso.fire$shift, var1 = total_response_seconds)
+trs_day_df = data.frame(index = gso.fire$DayOfWeek, var1 = total_response_seconds)
+trs_station_df = data.frame(index = gso.fire$station, var1 = total_response_seconds)
+
+# bar graph for days of week to amount of incidents
+
+ggplot(gso.fire)
+gso.fire$DayOfWeek = factor(gso.fire$DayOfWeek, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+gso.fire %>% 
+ggplot(aes(x = DayOfWeek)) +
+  geom_bar(width = .95, color = "red" , fill = "black", stat = "count") +
+  labs(title = "Amount of Reports to Days of the Week", x = "Days Of The Week", y = "Number of Incidents") +
+  theme_economist() 
+
+ # NEED HELP WITH SCALING TO Y AKIS  + scale_y_continuous() ,
+
+#bar graph for station
+
+gso.fire %>% 
+  ggplot(aes(x= FireDistrict)) + 
+  geom_bar(width = 1, fill = "red", color = "black", stat = "count") +
+  labs(title="Amount of Reports to Fire Station District", x = "Fire Station District", y = "Nuumer of Incidents") +
+  theme_economist() 
+ # + scale_y_continuous , need help 
+
+ #histogram for trs & month
+ggplot(trs_month_df, aes(x = index)) +
+ geom_histogram(fill = "black", color = "red", stat = "count") +
+  labs(x = "Months", y = "TRS", title = "Months to  TRS") +
+  theme_economist() # + name the months from numbers to months
+ 
+ # violin plot for work shift to trs
+
+trs_shift_df %>% 
+ggplot(aes(y = var1, x = index)) +
+  geom_violin() 
+
