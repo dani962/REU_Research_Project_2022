@@ -29,17 +29,64 @@ gso.fire = gso.fire %>%
   mutate(call_process_period = lubridate::hms(CallProcessingTime), 
          call_process_seconds = period_to_seconds(call_process_period))
 
+#convert response time to seconds and add to gso.fire
+gso.fire = gso.fire %>%
+  mutate(response_time_period = lubridate::hms(ResponseTime),
+         response_time_seconds = period_to_seconds(response_time_period))
+
+#convert total response time to seconds and add to gso.fire
+gso.fire = gso.fire %>%
+  mutate(total_response_period = lubridate::hms(TotalResponseTime),
+         total_response_seconds = period_to_seconds(total_response_period))
+
 #histogram of call process seconds vs count
 gso.fire %>% 
   filter(call_process_seconds < 500) %>%
   ggplot(aes(x = call_process_seconds)) +
   geom_histogram()
 
+
+#...
+#density plots
+#...
+
 #density plot of call process seconds
 gso.fire %>% 
   filter(call_process_seconds < 500) %>%
   ggplot(aes(x = call_process_seconds)) +
-  geom_density()
+  geom_density(fill = "light blue") +
+  geom_vline(aes(xintercept = mean(call_process_seconds)),
+             color = "blue", linetype = "dashed") +
+  xlab("Call Process Seconds") +
+  ylab("Density") +
+  ggtitle("Call Process Seconds Density Curve")
+
+#density plot of response time seconds
+gso.fire %>%
+  filter(response_time_seconds < 750) %>%
+  ggplot(aes(x = response_time_seconds)) +
+  geom_density(fill = "light green") +
+  geom_vline(aes(xintercept = mean(response_time_seconds)),
+             color = "dark green", linetype = "dashed") +
+  xlab("Response Time Seconds") +
+  ylab("Density") +
+  ggtitle("Response Time Seconds Density Curve")
+
+#density plot of total response seconds
+gso.fire %>%
+  filter(total_response_seconds < 1000) %>%
+  ggplot(aes(x = total_response_seconds)) +
+  geom_density(fill = "light pink") +
+  geom_vline(aes(xintercept = mean(total_response_seconds)),
+             color = "red", linetype = "dashed") +
+  xlab("Total Response Time Seconds") +
+  ylab("Density") +
+  ggtitle("Total Response Time Seconds Density Curve")
+
+
+#...
+#bar graphs
+#...
 
 #bar graph of work shift and call process time
 gso.fire %>%
@@ -59,11 +106,6 @@ gso.fire %>%
 #...
 #now looking at Response Time
 #...
-
-#convert response time to seconds and add to gso.fire
-gso.fire = gso.fire %>%
-  mutate(response_time_period = lubridate::hms(ResponseTime),
-         response_time_seconds = period_to_seconds(response_time_period))
 
 #bar graph of days of the week vs response time
 gso.fire %>%
@@ -92,11 +134,6 @@ gso.fire %>%
 #...
 #now looking at total response time
 #...
-
-#convert total response time to seconds and add to gso.fire
-gso.fire = gso.fire %>%
-  mutate(total_response_period = lubridate::hms(TotalResponseTime),
-         total_response_seconds = period_to_seconds(total_response_period))
 
 #bar graph of days of the week vs total response time
 gso.fire %>%
@@ -144,7 +181,7 @@ ggplot(alarms_per_day_data, aes(x = index, y = var1)) +
 
 
 #...
-#now looking some box plots
+#box plots
 #...
 
 #box plot of days of the week vs call process time
