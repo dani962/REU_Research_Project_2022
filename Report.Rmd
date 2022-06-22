@@ -1,0 +1,37 @@
+---
+title: "Statistical Analysis of Fire Incidents"
+author: "Danielle Mirzaeian, Nahom Fisseha"
+date: '2022-06-22'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading necessary packages
+
+```{r}
+library(readr)
+library(lubridate)
+library(ggplot2)
+library(dslabs)
+library(dplyr)
+library(ggrepel)
+library(ggthemes)
+```
+
+## Loading the dataset
+```{r}
+gso.fire <- read_csv("Greensboro_Fire_Incidents.csv")
+```
+
+next code will appear after this
+
+## Filtering for incidents prior to June 1st 2022
+```{r}
+gso.fire = 
+  gso.fire %>%
+  mutate(AlarmDate2 = make_date(Year, Month, Day)) %>%
+  filter(AlarmDate2 < '2022-06-01')
+```
