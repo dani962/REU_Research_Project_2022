@@ -35,3 +35,31 @@ gso.fire =
   mutate(AlarmDate2 = make_date(Year, Month, Day)) %>%
   filter(AlarmDate2 < '2022-06-01')
 ```
+
+## Filter for property type 1-2 family dwellings
+```{r}
+gso.fire = gso.fire %>%
+  filter(PropertyUse == '419 - 1 or 2 family dwelling')
+```
+
+## Convert to call process time to seconds and add to gso.fire
+```{r}
+gso.fire = gso.fire %>%
+  mutate(call_process_period = lubridate::hms(CallProcessingTime), 
+         call_process_seconds = period_to_seconds(call_process_period))
+```
+
+## Convert response time to seconds and add to gso.fire
+```{r}
+gso.fire = gso.fire %>%
+  mutate(response_time_period = lubridate::hms(ResponseTime),
+         response_time_seconds = period_to_seconds(response_time_period))
+```
+
+## Convert total response time to seconds and add to gso.fire
+```{r}
+gso.fire = gso.fire %>%
+  mutate(total_response_period = lubridate::hms(TotalResponseTime),
+         total_response_seconds = period_to_seconds(total_response_period))
+```
+
