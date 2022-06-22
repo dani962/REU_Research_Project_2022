@@ -48,32 +48,39 @@ gso.fire %>%
   filter(call_process_seconds < 500) %>%
   ggplot(aes(x = call_process_seconds, fill = "red")) +
   geom_histogram(show.legend = FALSE, color = "black") +
-  theme_economist() +
   xlab("Call Process Seconds") +
   ylab("Count") +
-  ggtitle("Call Process Seconds vs Count")
+  ggtitle("Call Process Seconds vs Count") +
+  theme_economist()
 
 #histogram of response time seconds vs count
 gso.fire %>%
   filter(response_time_seconds < 800) %>%
   ggplot(aes(x = response_time_seconds, fill = "red")) +
   geom_histogram(show.legend = FALSE, color = "black") +
-  theme_economist() +
   xlab("Response Time Seconds") +
   ylab("Count") +
-  ggtitle("Response Time Seconds vs Count")
+  ggtitle("Response Time Seconds vs Count") +
+  theme_economist()
 
 #histogram of total response time seconds vs count
 gso.fire %>%
   filter(total_response_seconds < 800) %>%
-  ggplot(aes(x = total_response_seconds, fill = "red")) +
-  geom_histogram(aes(x = total_response_seconds, fill = "red"), show.legend = FALSE) +
-  geom_histogram(show.legend = FALSE, color = "black") +
-  theme_economist() +
+  ggplot(aes(x = total_response_seconds)) +
+  geom_histogram(aes(x = total_response_seconds, fill = "red"), show.legend = FALSE, color = "black") +
   xlab("Total Response Time Seconds") +
   ylab("Count") +
-  ggtitle("Total Response Time Seconds vs Count")
+  ggtitle("Total Response Time Seconds vs Count") +
+  theme_economist()
 
+#histogram of alarm hour vs count
+gso.fire %>%
+  ggplot(aes(x = AlarmHour)) +
+  geom_histogram(color = "black", fill = "pink") +
+  xlab("Alarm Hour") +
+  ylab("Count") +
+  ggtitle("Alarm Hour vs Count") +
+  theme_economist()
 
 #...
 #density plots
@@ -122,22 +129,27 @@ gso.fire %>%
   ggplot(aes(x = DayOfWeek, y = call_process_seconds, fill = DayOfWeek)) +
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Days of the Week") +
-  ggtitle("Days of the Week vs Call Process Time")
+  ylab("Call Process Time") +
+  ggtitle("Days of the Week vs Call Process Time") +
+  theme_economist()
 
 #bar graph of work shift vs call process time
 gso.fire %>%
   ggplot(aes(x = shift, y = call_process_seconds, fill = shift)) +
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Work Shifts") +
-  ggtitle("Work Shifts vs Total Call Process Time")
+  ylab("Call Process Time") +
+  ggtitle("Work Shifts vs Total Call Process Time") +
+  theme_economist()
 
 #bar graph of month vs call process time
 gso.fire %>%
   ggplot(aes(x = Month, y = call_process_seconds, fill = Month)) +
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Month") +
-  ylab("Total Call Process Time") +
-  ggtitle("Month vs Total Call Process Time")
+  ylab("Call Process Time") +
+  ggtitle("Month vs Total Call Process Time") +
+  theme_economist()
 
 #bar graph of week vs call process time
 gso.fire %>%
@@ -145,7 +157,17 @@ gso.fire %>%
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Week in the year") +
   ylab("Call Process Time") +
-  ggtitle("Week in the year vs Call Process Time")
+  ggtitle("Week in the year vs Call Process Time") +
+  theme_economist()
+
+#bar graph of station vs call process time
+gso.fire %>%
+  ggplot(aes(x = station, y = call_process_seconds, fill = station)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlab("Station") +
+  ylab("Call Process Time") +
+  ggtitle("Station vs Call Process Time") +
+  theme_economist()
 
 #...
 #now looking at Response Time
@@ -157,7 +179,8 @@ gso.fire %>%
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Days of the Week") +
   ylab("Response Time") +
-  ggtitle("Days of the Week vs Response Time")
+  ggtitle("Days of the Week vs Response Time") +
+  theme_economist()
 
 #bar graph of work shift vs response time
 gso.fire %>%
@@ -165,7 +188,8 @@ gso.fire %>%
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Work Shifts") +
   ylab("Response Time") +
-  ggtitle("Work Shifts vs Response Time")
+  ggtitle("Work Shifts vs Response Time") +
+  theme_economist()
 
 #bar graph of month vs response time
 gso.fire %>%
@@ -173,7 +197,8 @@ gso.fire %>%
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Month") +
   ylab("Response Time") +
-  ggtitle("Month vs Response Time")
+  ggtitle("Month vs Response Time") +
+  theme_economist()
 
 #bar graph of week in the year vs response time
 gso.fire %>%
@@ -181,7 +206,17 @@ gso.fire %>%
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Week in the year") +
   ylab("Response Time") +
-  ggtitle("Week in the year vs Response Time")
+  ggtitle("Week in the year vs Response Time") +
+  theme_economist()
+
+#bar graph of station vs response time
+gso.fire %>%
+  ggplot(aes(x = station, y = response_time_seconds, fill = station)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlab("Station") +
+  ylab("Response Time") +
+  ggtitle("Station vs Response Time") +
+  theme_economist()
 
 #...
 #now looking at total response time
@@ -193,7 +228,8 @@ gso.fire %>%
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Days of the Week") +
   ylab("Total Response Time") +
-  ggtitle("Days of the Week vs Total Repsonse Time")
+  ggtitle("Days of the Week vs Total Repsonse Time") +
+  theme_economist()
 
 #bar graph of work shift vs total response time
 gso.fire %>%
@@ -201,7 +237,8 @@ gso.fire %>%
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Work Shifts") +
   ylab("Total Response Time") +
-  ggtitle("Work Shifts vs Total Response Time")
+  ggtitle("Work Shifts vs Total Response Time") +
+  theme_economist()
 
 #bar graph of month vs total response time
 gso.fire %>%
@@ -209,28 +246,58 @@ gso.fire %>%
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Month") +
   ylab("Total Response Time") +
-  ggtitle("Month vs Total Response Time")
+  ggtitle("Month vs Total Response Time") +
+  theme_economist()
 
 #bar graph of week in the year vs total response time
 gso.fire %>%
   ggplot(aes(x = Week, y = total_response_seconds, fill = Week)) +
   geom_bar(stat = "identity", show.legend = FALSE) +
   xlab("Week in the year") +
-  ylab("Total Response Time")
-  ggtitle("Week in the year vs Total Response Time")
+  ylab("Total Response Time") +
+  ggtitle("Week in the year vs Total Response Time") +
+  theme_economist()
+  
+#bar graph of station vs total response time
+gso.fire %>%
+  ggplot(aes(x = station, y = total_response_seconds, fill = station)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlab("Station") +
+  ylab("Total Response Time") +
+  ggtitle("Station vs Total Response Time") +
+  theme_economist()
 
 
 #...
-#now looking at number of alarms each day
+#now looking at point graphs and number of alarms each day
 #...
 
-alarms_per_day_data <- data.frame(index = gso.fire$AlarmDate, var1 = gso.fire$NumberOfAlarms)
+#point graph of days of the week vs number of alarms
+gso.fire %>%
+  ggplot(aes(x = DayOfWeek, y = NumberOfAlarms)) +
+  geom_point(size = 2) +
+  xlab("Days of the Week") +
+  ylab("Number of Alarms") +
+  ggtitle("Days of the Week vs Number of Alarms") +
+  theme_economist()
 
-#takes awhile to load, lot of data, maybe split it up?
-#most days had one alarm, some had two
-ggplot(alarms_per_day_data, aes(x = index, y = var1)) +
-  geom_point()
+#point graph of work shift vs number of alarms
+gso.fire %>%
+  ggplot(aes(x = shift, y = NumberOfAlarms)) +
+  geom_point(size = 2) +
+  xlab("Work Shift") +
+  ylab("Number of Alarms") +
+  ggtitle("Work Shift vs Number of Alarms") +
+  theme_economist()
 
+#point graph of month vs number of alarms
+gso.fire %>%
+  ggplot(aes(x = Month, y = NumberOfAlarms)) +
+  geom_point(size = 2) +
+  xlab("Month") +
+  ylab("Number of Alarms") +
+  ggtitle("Month vs Number of Alarms") +
+  theme_economist()
 
 #...
 #box plots
@@ -262,6 +329,7 @@ gso.fire %>%
   xlab("Month") +
   ylab("Total Call Process Time") +
   ggtitle("Month vs Call Process Time")
+
 
 #...
 #now looking at response time
@@ -427,5 +495,3 @@ gso.fire %>%
   xlab("Month") +
   ylab("Total Response Time") +
   ggtitle("Month vs Total Repsonse Time")
-
-#testing if i can make changes ; nahom
