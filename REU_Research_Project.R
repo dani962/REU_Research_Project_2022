@@ -495,3 +495,50 @@ gso.fire %>%
   xlab("Month") +
   ylab("Total Response Time") +
   ggtitle("Month vs Total Repsonse Time")
+
+#
+#Scatter Plots
+#
+
+#Scatter Plot for Total Staff on Incident & Total Response Time
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = total_response_seconds, fill = TotalStaffOnIncident)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  xlab("Total Staff On Incident") +
+  ylab("Total Response Time") +
+  ggtitle("Total Staff on Incident vs Total Response Time") 
+
+#Scatter Plot for Civilian Injuries & Total Response Time
+gso.fire %>%
+  ggplot(aes(x = CivilianInjuries, y = total_response_seconds, fill = CivilianInjuries)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  xlab("Civilian Injuries") +
+  ylab("Total Response Time") +
+  ggtitle("Civilian Injuries vs Total Response Time") 
+
+#Scatter Plot for Civilian Fatalities & Total Response Time
+gso.fire %>%
+  ggplot(aes(x = CivilianFatalities, y = total_response_seconds, fill = CivilianFatalities)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  xlab("Civilian Fatalities") +
+  ylab("Total Response Time") +
+  ggtitle("Civilian Fatalities vs Total Response Time") +
+  theme_economist()
+
+#Scatter Plot for Fire Service Injuries & Total Response Time
+gso.fire %>%
+  ggplot(aes(x = FireServiceInjuries, y = total_response_seconds, fill = FireServiceInjuries)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  xlab("Fire Service Injuries") +
+  ylab("Total Response Time") +
+  ggtitle("Fire Service Injuries Injuries vs Total Response Time") +
+  theme_economist()
+
+#Scatter Plot for Fire Service Fatalities & Total Response Time
+gso.fire %>%
+  ggplot(aes(x = FireServiceFatalities, y = total_response_seconds, fill = FireServiceFatalities)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  xlab("Fire Service Fatalities") +
+  ylab("Total Response Time") +
+  ggtitle("Fire Service Fatalities vs Total Response Time") +
+  theme_economist()
