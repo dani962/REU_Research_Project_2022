@@ -170,3 +170,121 @@ trs_shift_df %>%
   geom_violin() # needs to be cleaned up 
 
 
+
+
+###################################################################
+
+#filtering for incidents prior to June 1st 2022
+gso.fire = 
+  gso.fire %>%
+  mutate(AlarmDate2 = make_date(Year, Month, Day)) %>%
+  filter(AlarmDate2 < '2022-06-01') 
+
+#get the count of incidents by property type
+gso.fire %>%
+  count(PropertyUse, sort=TRUE) %>%
+  head(10)
+
+#filter for property type 1-2 family dwellings   (not working for me)
+gso.fire = gso.fire %>%
+  filter(PropertyUse == '419 - 1 or 2 family dwelling')
+
+#convert to call process time to seconds and add to gso.fire
+gso.fire = gso.fire %>%
+  mutate(call_process_period = lubridate::hms(CallProcessingTime), 
+         call_process_seconds = period_to_seconds(call_process_period))
+
+#convert response time to seconds and add to gso.fire
+gso.fire = gso.fire %>%
+  mutate(response_time_period = lubridate::hms(ResponseTime),
+         response_time_seconds = period_to_seconds(response_time_period))
+
+#convert total response time to seconds and add to gso.fire
+gso.fire = gso.fire %>%
+  mutate(total_response_period = lubridate::hms(TotalResponseTime),
+         total_response_seconds = period_to_seconds(total_response_period))
+
+#Bar Graphs for total staff on incident vs time variables
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = call_process_seconds, fill = TotalStaffOnIncident)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlim(0,27) +
+  xlab("Total Staff On Incident") +
+  ylab("Call Processing Time") +
+  ggtitle("Total Staff On Incident vs Call Processing Time") 
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = response_time_seconds, fill = TotalStaffOnIncident)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlim(0,27) +
+  xlab("Total Staff On Incident") +
+  ylab("Response Time") +
+  ggtitle("Total Staff On Incident vs Response Time") 
+
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = total_response_seconds, fill = TotalStaffOnIncident)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlim(0,27) +
+  xlab("Total Staff On Incident") +
+  ylab("Total Response Time") +
+  ggtitle("Total Staff On Incident vs Total Response Time") 
+
+#Box Plot for Total Staff On Incident vs Time Variables
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = call_process_seconds, fill = TotalStaffOnIncident)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Total Staff On Incident") +
+  ylab("Call Process Time") +
+  ggtitle("Total Staff On Incident vs Call Process Time") 
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = response_time_seconds, fill = TotalStaffOnIncident)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Total Staff On Incident") +
+  ylab("Response Time") +
+  ggtitle("Total Staff On Incident vs Response Time") 
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = total_response_seconds, fill = TotalStaffOnIncident)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Total Staff On Incident") +
+  ylab("Total Response Time") +
+  ggtitle("Total Staff On Incident vs Total Response Time") 
+
+#Violin Plot for Total Staff On Incident vs Time Variables
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = call_process_seconds, fill = TotalStaffOnIncident )) +
+  geom_violin(show.legend = FALSE) +
+  stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Total Staff On Incident") +
+  ylab("Call Process Time") +
+  ggtitle("Total Staff On Incident vs Call Process Time")
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = response_time_seconds, fill = TotalStaffOnIncident )) +
+  geom_violin(show.legend = FALSE) +
+  stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Total Staff On Incident") +
+  ylab("Response Time") +
+  ggtitle("Total Staff On Incident vs Response Time")
+
+gso.fire %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = total_response_seconds, fill = TotalStaffOnIncident )) +
+  geom_violin(show.legend = FALSE) +
+  stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Total Staff On Incident") +
+  ylab("Total Resposne Time") +
+  ggtitle("Total Staff On Incident vs Total Response Time") 
+
+
+
