@@ -48,9 +48,9 @@ gso.fire %>%
   filter(call_process_seconds < 500) %>%
   ggplot(aes(x = call_process_seconds, fill = "red")) +
   geom_histogram(show.legend = FALSE, color = "black") +
-  xlab("Call Process Seconds") +
+  xlab("Call Processing Time (Seconds)") +
   ylab("Count") +
-  ggtitle("Call Process Seconds vs Count") +
+  ggtitle("Distribution of Call Processing Time") +
   theme_economist()
 
 #histogram of response time seconds vs count
@@ -64,60 +64,47 @@ gso.fire %>%
   theme_economist()
 
 #histogram of total response time seconds vs count
+cutoff = gso.fire %>% select(total_response_seconds) %>% 
+  filter(!is.na(total_response_seconds)) %>%
+  summarize(c = quantile(total_response_seconds, .75) + 3 * IQR(total_response_seconds)) %>%
+  pull(c)
 gso.fire %>%
-  filter(total_response_seconds < 800) %>%
+  filter(total_response_seconds < cutoff) %>%
   ggplot(aes(x = total_response_seconds)) +
   geom_histogram(aes(x = total_response_seconds, fill = "red"), show.legend = FALSE, color = "black") +
-  xlab("Total Response Time Seconds") +
+  xlab("Total Response Time (Seconds)") +
   ylab("Count") +
-  ggtitle("Total Response Time Seconds vs Count") +
+  ggtitle("Distribution of Total Response Time") +
   theme_economist()
 
 #histogram of alarm hour vs count
 gso.fire %>%
   ggplot(aes(x = AlarmHour)) +
-  geom_histogram(color = "black", fill = "pink") +
+  geom_bar(color = "black", fill = "pink") +
+  scale_x_continuous(breaks = seq(0,23,1)) +
+  theme(axis.text.x = element_text(angle = 45)) +
   xlab("Alarm Hour") +
   ylab("Count") +
-  ggtitle("Alarm Hour vs Count") +
-  theme_economist()
+  ggtitle("Frequency of Fire Alarms by Alarm Hour")
+  #theme_economist()
 
-#...
-#density plots
-#...
-
-#density plot of call process seconds
-gso.fire %>% 
-  filter(call_process_seconds < 500) %>%
-  ggplot(aes(x = call_process_seconds)) +
-  geom_density(fill = "light blue") +
-  geom_vline(aes(xintercept = mean(call_process_seconds)),
-             color = "blue", linetype = "dashed") +
-  xlab("Call Process Seconds") +
-  ylab("Density") +
-  ggtitle("Call Process Seconds Density Curve")
-
-#density plot of response time seconds
 gso.fire %>%
-  filter(response_time_seconds < 750) %>%
-  ggplot(aes(x = response_time_seconds)) +
-  geom_density(fill = "light green") +
-  geom_vline(aes(xintercept = mean(response_time_seconds)),
-             color = "dark green", linetype = "dashed") +
-  xlab("Response Time Seconds") +
-  ylab("Density") +
-  ggtitle("Response Time Seconds Density Curve")
+  ggplot(aes(x = shift)) +
+  geom_bar(color = "black", fill = "pink") +
+  xlab("Alarm Hour") +
+  ylab("Count") +
+  ggtitle("Frequency of Fire Alarms by Alarm Hour")
 
-#density plot of total response seconds
 gso.fire %>%
-  filter(total_response_seconds < 1000) %>%
-  ggplot(aes(x = total_response_seconds)) +
-  geom_density(fill = "light pink") +
-  geom_vline(aes(xintercept = mean(total_response_seconds)),
-             color = "red", linetype = "dashed") +
-  xlab("Total Response Time Seconds") +
-  ylab("Density") +
-  ggtitle("Total Response Time Seconds Density Curve")
+  count(station) %>%
+  mutate(station = reorder(station, n)) %>%
+  ggplot(aes(x = station, y = n)) +
+  geom_bar(stat = "identity", color = "black", fill = "pink") +
+  theme(axis.text.y = element_text(size = 6)) +
+  xlab("Alarm Hour") +
+  ylab("Count") +
+  ggtitle("Frequency of Fire Alarms by Alarm Hour") +
+  coord_flip()
 
 
 #...
@@ -224,8 +211,9 @@ gso.fire %>%
 
 #bar graph of days of the week vs total response time
 gso.fire %>%
+  filter(total_response_seconds < cutoff) %>%
   ggplot(aes(x = DayOfWeek, y = total_response_seconds, fill = DayOfWeek)) +
-  geom_bar(stat = "identity", show.legend = FALSE) +
+  geom_boxplot() +
   xlab("Days of the Week") +
   ylab("Total Response Time") +
   ggtitle("Days of the Week vs Total Repsonse Time") +
@@ -495,50 +483,3 @@ gso.fire %>%
   xlab("Month") +
   ylab("Total Response Time") +
   ggtitle("Month vs Total Repsonse Time")
-
-#
-#Scatter Plots
-#
-
-#Scatter Plot for Total Staff on Incident & Total Response Time
-gso.fire %>%
-  ggplot(aes(x = TotalStaffOnIncident, y = total_response_seconds, fill = TotalStaffOnIncident)) +
-  geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Total Staff On Incident") +
-  ylab("Total Response Time") +
-  ggtitle("Total Staff on Incident vs Total Response Time") 
-
-#Scatter Plot for Civilian Injuries & Total Response Time
-gso.fire %>%
-  ggplot(aes(x = CivilianInjuries, y = total_response_seconds, fill = CivilianInjuries)) +
-  geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Civilian Injuries") +
-  ylab("Total Response Time") +
-  ggtitle("Civilian Injuries vs Total Response Time") 
-
-#Scatter Plot for Civilian Fatalities & Total Response Time
-gso.fire %>%
-  ggplot(aes(x = CivilianFatalities, y = total_response_seconds, fill = CivilianFatalities)) +
-  geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Civilian Fatalities") +
-  ylab("Total Response Time") +
-  ggtitle("Civilian Fatalities vs Total Response Time") +
-  theme_economist()
-
-#Scatter Plot for Fire Service Injuries & Total Response Time
-gso.fire %>%
-  ggplot(aes(x = FireServiceInjuries, y = total_response_seconds, fill = FireServiceInjuries)) +
-  geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Fire Service Injuries") +
-  ylab("Total Response Time") +
-  ggtitle("Fire Service Injuries Injuries vs Total Response Time") +
-  theme_economist()
-
-#Scatter Plot for Fire Service Fatalities & Total Response Time
-gso.fire %>%
-  ggplot(aes(x = FireServiceFatalities, y = total_response_seconds, fill = FireServiceFatalities)) +
-  geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Fire Service Fatalities") +
-  ylab("Total Response Time") +
-  ggtitle("Fire Service Fatalities vs Total Response Time") +
-  theme_economist()
