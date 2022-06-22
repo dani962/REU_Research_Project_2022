@@ -1,4 +1,3 @@
-#NAHOM
 rm(list=ls())
 #check working directory
 getwd()
@@ -9,60 +8,71 @@ library(readr)
 library(lubridate)
 library(ggthemes)
 library(ggplot2)
-?ggplot2
+library(ggrepel)
 
 #importing .csv file
 gso.fire = read.csv ("Greensboro_Fire_Incidents.csv", header = TRUE, sep = ",")
 
 class(gso.fire)
 dim(gso.fire)
-class(gso.fire$CallProcessingTime)
-
 gso.fire
 
-?lubridate
+#filtering for incidents prior to June 1st 2022
+gso.fire = 
+  gso.fire %>%
+  mutate(AlarmDate2 = make_date(Year, Month, Day)) %>%
+  filter(AlarmDate2 < '2022-06-01')
 
-class(Gfires$TotalResponseTime)
-?seconds
+#filtering to only 1-2 family dwellings
+gso.fire.fd = gso.fire %>%
+  select(PropertyUse) %>% 
+  filter(PropertyUse %in% c('419 - 1 or 2 family dwelling')) #reading it as zero, need help
+ 
 # Call Processing time into seconds
 call_process_period <- lubridate::hms(gso.fire$CallProcessingTime)
-
 call_process_seconds <- period_to_seconds(call_process_period)
-
 call_process_seconds
 
 #Response Time into seconds
-
 response_time_period <- lubridate::hms(gso.fire$ResponseTime)
-
 response_time_seconds <- period_to_seconds(response_time_period)
-
 response_time_seconds
 
 #Total Response time in seconds
-
 total_response_period <- lubridate::hms(gso.fire$TotalResponseTime)
-
 total_response_seconds <- period_to_seconds(total_response_period)
-
 total_response_seconds
 
 glimpse(gso.fire)
 
-
-#averages of data
+#averages of numerical variables 
 mean(total_response_seconds, na.rm=TRUE) 
 mean(call_process_seconds, na.rm=TRUE)
 mean(response_time_seconds, na.rm=TRUE)
+mean(gso.fire$AlarmHour, na.rm=TRUE)
+mean(gso.fire$NumberOfAlarms, na.rm = TRUE)
+mean(gso.fire$TotalStaffOnIncident, na.rm = TRUE)
+mean(gso.fire$PropertyLoss, na.rm = TRUE)
+mean(gso.fire$ContentLoss, na.rm = TRUE)
+mean(gso.fire$TotalLosses, na.rm = TRUE)
+mean(gso.fire$FireServiceInjuries, na.rm = TRUE)
+mean(gso.fire$CivilianInjuries, na.rm = TRUE)
+mean(gso.fire$TotalApparatus, na.rm = TRUE)
 
 #creating data frames for variables vs trs
 trs_month_df = data.frame(index = gso.fire$Month, var1 = total_response_seconds) 
 trs_shift_df = data.frame(index = gso.fire$shift, var1 = total_response_seconds)
 trs_day_df = data.frame(index = gso.fire$DayOfWeek, var1 = total_response_seconds)
 trs_station_df = data.frame(index = gso.fire$station, var1 = total_response_seconds)
+trs_fsi_df = data.frame(index = gso.fire$FireServiceFatalities + gso.fire$FireServiceInjuries, var1 = total_response_seconds)
+trs_csi_df = data.frame(index = gso.fire$CivilianFatalities + gso.fire$CivilianInjuries , var1 = total_response_seconds)
+trs_tsi_df = data.frame(index = gso.fire$TotalStaffOnIncident, var1 = total_response_seconds)
+
+#
+#BAR GRAPHS#
+#
 
 # bar graph for days of week to amount of incidents
-
 ggplot(gso.fire)
 gso.fire$DayOfWeek = factor(gso.fire$DayOfWeek, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
 
@@ -70,28 +80,93 @@ gso.fire %>%
 ggplot(aes(x = DayOfWeek)) +
   geom_bar(width = .95, color = "red" , fill = "black", stat = "count") +
   labs(title = "Amount of Reports to Days of the Week", x = "Days Of The Week", y = "Number of Incidents") +
-  theme_economist() 
+  theme_economist() # NEED HELP WITH SCALING TO Y AKIS  + scale_y_continuous() ,
 
- # NEED HELP WITH SCALING TO Y AKIS  + scale_y_continuous() ,
-
-#bar graph for station
-
+#bar graph for station to amount of incidents
 gso.fire %>% 
   ggplot(aes(x= FireDistrict)) + 
   geom_bar(width = 1, fill = "red", color = "black", stat = "count") +
   labs(title="Amount of Reports to Fire Station District", x = "Fire Station District", y = "Nuumer of Incidents") +
-  theme_economist() 
- # + scale_y_continuous , need help 
+  theme_economist()  # + scale_y_continuous , need help 
 
- #histogram for trs & month
+#bar graph alarm hour to amount of incidents
+gso.fire %>% 
+  ggplot(aes(x= AlarmHour)) + 
+  geom_bar(width = 1, fill = "red", color = "black", stat = "count") +
+  labs(title="Incidents vs Alarm Hour", x = "Alarm Hour", y = "Amount of Incidents") +
+  theme_economist()  # + scale_y_continuous , need help 
+
+#histogram for trs & month 
 ggplot(trs_month_df, aes(x = index)) +
  geom_histogram(fill = "black", color = "red", stat = "count") +
-  labs(x = "Months", y = "TRS", title = "Months to  TRS") +
+  labs(x = "Months", y = "TRS", title = "Months vs  TRS") +
   theme_economist() # + name the months from numbers to months
- 
- # violin plot for work shift to trs
 
+#histogram for trs & fire injuries
+ggplot(trs_fsi_df, aes(x = var1)) +
+  geom_histogram(fill = "green", color = "dark green", stat = "count") +
+  xlim(0, 4000) +
+  labs(x = "Total Response Time", y = "Fire Service Injuries & Fatalities", title = "How does response time affect fire service injuries + fatalities") +
+  theme_economist() 
+  
+#histogram for trs & civilian injuries
+ggplot(trs_csi_df, aes(x = var1)) +
+  geom_histogram(color = "dark blue", stat = "count") +
+  xlim (0, 4000) + 
+  labs(x = "Total Response Time", y = "Civilian Injuries + Fatalities" , title = "How does total response time affect civilian injuries + fatalities") +
+  theme_economist() 
+
+#histogram for trs & total staff members
+ggplot(trs_tsi_df, aes(x = index)) +
+  geom_histogram(color = "purple", stat = "count") +
+  xlim (0, 15) + 
+  labs(x = "Total Staff on Incident", y = "Total Response Time" , title = "How does total number of staff affect response time") +
+  theme_economist() 
+  
+#
+#LINE GRAPHS#
+#
+
+#line plot for alarm hour vs total staff members
+ah_ts_df = data.frame(index = gso.fire$AlarmHour, var1 = gso.fire$TotalStaffOnIncident)
+
+ggplot(ah_ts_df, aes(x = index, y = var1)) +
+  geom_line() +
+  labs(x = "Alarm Hour", y = "Total Staff on Incident", title = "How many staff members to alarm hour") +
+  theme_economist() 
+
+2#line graph for totalstaffonincident vs fireserviceinjuries
+fsi_tti_df = data.frame(index = gso.fire$FireServiceInjuries + gso.fire$FireServiceFatalities, var1 = gso.fire$TotalStaffOnIncident)
+
+ggplot(fsi_tti_df, aes(x = var1, y = index)) +
+  geom_line()+
+  labs(x = "Total Staff on Incident", y = "Fire Service Injuries/Fatalities", title = "Fire Service Injuries vs. Total Staff on Incident ") +
+  theme_economist() 
+
+#
+#EXTRA GRAPHS#
+#
+
+#dot graph for civilian injuries vs total response time
+cif_trs_df = data.frame(index = gso.fire$CivilianInjuries + gso.fire$CivilianFatalities, var1 = total_response_seconds)
+
+ggplot(ci_trs_df, aes(x = var1, y = index)) +
+  geom_point() +
+  xlim(0, 40000) +
+  labs(x = "Total Response Time" , y = "Civilian Injuries/Fatalities", title = "Civilian Injuries/Fatalities VS. Total Response Time") +
+  theme_economist()
+
+#scatter plot for both injuries/fatalities
+cif_fsif_df = data.frame(index = gso.fire$CivilianInjuries + gso.fire$CivilianFatalities, var1 = gso.fire$FireServiceInjuries + gso.fire$FireServiceFatalities) +
+
+gso.fire %>% 
+  filter(gso.fire$FireServiceInjuries + gso.fire$FireServiceFatalities > 0, gso.fire$CivilianInjuries + gso.fire$CivilianFatalities > 0) %>% 
+  ggplot(cif_fsif_df, mapping = aes(x = index, y = var1)) + 
+  geom_point() #need help with aes
+
+# violin plot for work shift to trs
 trs_shift_df %>% 
-ggplot(aes(y = var1, x = index)) +
-  geom_violin() 
+  ggplot(aes(y = var1, x = index)) +
+  geom_violin() # needs to be cleaned up 
+
 
