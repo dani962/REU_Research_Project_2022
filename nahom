@@ -204,6 +204,11 @@ gso.fire = gso.fire %>%
   mutate(total_response_period = lubridate::hms(TotalResponseTime),
          total_response_seconds = period_to_seconds(total_response_period))
 
+
+#
+#Total Staff on Incident
+#
+
 #Bar Graphs for total staff on incident vs time variables
 
 gso.fire %>%
@@ -231,6 +236,37 @@ gso.fire %>%
   ylab("Total Response Time") +
   ggtitle("Total Staff On Incident vs Total Response Time") 
 
+#Bar Graphs for Total Staff on Incident vs Date Variables
+
+gso.fire %>%
+  ggplot(aes(x = DayOfWeek, y = TotalStaffOnIncident, fill = DayOfWeek)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlab("Day Of Week") +
+  ylab("Total Staff On Incident") +
+  ggtitle("Day of Week vs Total Staff On Incident") 
+
+gso.fire %>%
+  ggplot(aes(x = Week, y = TotalStaffOnIncident, fill = Week)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlab("Week") +
+  ylab("Total Staff On Incident") +
+  ggtitle("Week vs Total Staff On Incident") 
+
+gso.fire %>%
+  ggplot(aes(x = MonthName, y = TotalStaffOnIncident, fill = MonthName)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlab("Month") +
+  ylab("Total Staff On Incident") +
+  ggtitle("Month vs Total Staff On Incident") 
+
+gso.fire %>%
+  ggplot(aes(x = Shift, y = TotalStaffOnIncident, fill = Shift)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  xlab("Shift") +
+  ylab("Total Staff On Incident") +
+  ggtitle("Shift vs Total Staff On Incident") 
+
+
 #Box Plot for Total Staff On Incident vs Time Variables
 
 gso.fire %>%
@@ -257,6 +293,40 @@ gso.fire %>%
   ylab("Total Response Time") +
   ggtitle("Total Staff On Incident vs Total Response Time") 
 
+#Box Plot for Total Staff on Incident vs Date Variables
+
+gso.fire %>%
+  ggplot(aes(x = DayOfWeek, y = TotalStaffOnIncident, fill = DayOfWeek)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Day Of Week") +
+  ylab("Total Staff on Incident") +
+  ggtitle("Total Staff On Incident vs Day of Week") 
+
+gso.fire %>%
+  ggplot(aes(x = Week, y = TotalStaffOnIncident, fill = Week, group = 1)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Total Staff On Incident") +
+  ylab("Week") +
+  ggtitle("Total Staff On Incident vs Week") 
+
+gso.fire %>%
+  ggplot(aes(x = MonthName, y = TotalStaffOnIncident, fill = MonthName, group = 1)) +
+  geom_boxplot(show.legend = FALSE) +
+  xlab("Month") +
+  scale_y_log10() +
+  ylab("Total Staff on Incidnet") +
+  ggtitle("Total Staff On Incident vs Month") 
+
+gso.fire %>%
+  ggplot(aes(x = shift, y = TotalStaffOnIncident, fill = shift)) +
+  geom_boxplot(show.legend = FALSE) +
+  xlab("Shift") +
+  scale_y_log10() +
+  ylab("Total Staff on Incidnet") +
+  ggtitle("Total Staff On Incident vs Shift") 
+
 #Violin Plot for Total Staff On Incident vs Time Variables
 
 gso.fire %>%
@@ -277,14 +347,245 @@ gso.fire %>%
   ylab("Response Time") +
   ggtitle("Total Staff On Incident vs Response Time")
 
+
 gso.fire %>%
-  ggplot(aes(x = TotalStaffOnIncident, y = total_response_seconds, fill = TotalStaffOnIncident )) +
+  ggplot(aes(x = TotalStaffOnIncident, y = TotalResponseTime, fill = TotalStaffOnIncident )) +
   geom_violin(show.legend = FALSE) +
   stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
   scale_y_log10() +
   xlab("Total Staff On Incident") +
-  ylab("Total Resposne Time") +
-  ggtitle("Total Staff On Incident vs Total Response Time") 
+  ylab("Total Response Time") +
+  ggtitle("Total Staff On Incident vs Total Response Time")
+
+#Violin Plot for Total Staff On Incident vs Date Variables
+
+gso.fire %>%
+  ggplot(aes(x = DayOfWeek, y = TotalStaffOnIncident, fill = DayOfWeek )) +
+  geom_violin(show.legend = FALSE) +
+  stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Day of Week") +
+  ylab("Total Staff on Incident") +
+  ggtitle("Total Staff On Incident vs Day of Week") 
+
+
+gso.fire %>%
+  ggplot(aes(x = Week, y = TotalStaffOnIncident, fill = Week )) +
+  geom_violin(show.legend = FALSE) +
+  stat_summary(fun = mean, geom = "point", size = 2, show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Week") +
+  ylab("Total Staff on Incident") +
+  ggtitle("Total Staff On Incident vs Week") 
+
+
+gso.fire %>%
+  ggplot(aes(x = MonthName, y = TotalStaffOnIncident, fill = MonthName)) +
+  geom_violin(show.legend = FALSE) +
+  stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Month") +
+  ylab("Total Staff on Incident") +
+  ggtitle("Total Staff On Incident vs Month") 
+
+gso.fire %>%
+  ggplot(aes(x = shift, y = TotalStaffOnIncident, fill = shift)) +
+  geom_violin(show.legend = FALSE) +
+  stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+  scale_y_log10() +
+  xlab("Shift") +
+  ylab("Total Staff on Incident") +
+  ggtitle("Total Staff On Incident vs Shift") 
+
+#
+#Total Apparatus
+#
+
+#Bar Graph for Total Apparatus vs Time Variables
+
+gso.fire %>%
+  ggplot(aes(x = TotalApparatus, y = call_process_seconds, fill = TotalApparatus)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  
+  xlab("Total Apparatus") +
+  ylab("Call Processing Time") +
+  ggtitle("Total Apparatus vs Call Processing Time") 
+
+  gso.fire %>%
+    ggplot(aes(x = TotalApparatus, y = response_time_seconds, fill = TotalApparatus)) +
+    xlim(0,10) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+    xlab("Total Apparatus") +
+    ylab("Response Time") +
+    ggtitle("Total Apparatus vs Response Time") 
+
+  gso.fire %>%
+    ggplot(aes(x = TotalApparatus, y = total_response_seconds, fill = TotalApparatus)) +
+    xlim(0,10) +
+    geom_bar(stat = "identity", show.legend = FALSE) +
+    xlab("Total Apparatus") +
+    ylab("Total Response Time") +
+    ggtitle("Total Apparatus vs Total Response Time") 
+  
+#Bar Graphs for Total Apparatus vs Date Variables
+  
+  gso.fire %>%
+    ggplot(aes(x = DayOfWeek, y = TotalApparatus, fill = DayOfWeek)) +
+    geom_bar(stat = "identity", show.legend = FALSE) +
+    xlab("Day Of Week") +
+    ylab("Total Apparatust") +
+    ggtitle("Day of Week vs Total Apparatus") 
+  
+  gso.fire %>%
+    ggplot(aes(x = Week, y = TotalApparatus, fill = Week)) +
+    geom_bar(stat = "identity", show.legend = FALSE) +
+    xlab("Week") +
+    ylab("Total Apparatus") +
+    ggtitle("Week vs Total Apparatus") 
+  
+  gso.fire %>%
+    ggplot(aes(x = MonthName, y = TotalApparatus, fill = MonthName)) +
+    geom_bar(stat = "identity", show.legend = FALSE) +
+    xlab("Month") +
+    ylab("Total ") +
+    ggtitle("Month vs Total Apparatus") 
+  
+  gso.fire %>%
+    ggplot(aes(x = Shift, y = TotalApparatus, fill = Shift)) +
+    geom_bar(stat = "identity", show.legend = FALSE) +
+    xlab("Shift") +
+    ylab("Total Apparatus") +
+    ggtitle("Shift vs Total Apparatus") 
+  
+#Box Plot for Total Apparatus vs Time Variable
+  
+  gso.fire %>%
+    ggplot(aes(x = TotalApparatus, y = call_process_seconds, fill = TotalApparatus)) +
+    geom_boxplot(show.legend = FALSE) +
+    scale_y_log10() +
+    xlab("Total Apparatus") +
+    ylab("Call Processing Time") +
+    ggtitle("Total Apparatus vs Call Processing Time") 
+  
+  gso.fire %>%
+    ggplot(aes(x = TotalApparatus, y = response_time_seconds, fill = TotalApparatus)) +
+    geom_boxplot(show.legend = FALSE) +
+    scale_y_log10() +
+    xlab("Total Apparatus") +
+    ylab("Response Time") +
+    ggtitle("Total Apparatus vs Response Time") 
+  
+  gso.fire %>%
+    ggplot(aes(x = TotalApparatus, y = total_response_seconds, fill = TotalApparatus)) +
+    geom_boxplot(show.legend = FALSE) +
+    scale_y_log10() +
+    xlab("Total Apparatus") +
+    ylab("Total Response Time") +
+    ggtitle("Total Apparatus vs Total Response Time") 
+  
+#Box Plot for Total Apparatus vs Date Variables
+  
+  gso.fire %>%
+    ggplot(aes(x = DayOfWeek, y = TotalApparatus, fill = DayOfWeek)) +
+    geom_boxplot(show.legend = FALSE) +
+    scale_y_log10() +
+    xlab("Day Of Week") +
+    ylab("Total Apparatus") +
+    ggtitle("Total Apparatus vs Day of Week") 
+  
+  gso.fire %>%
+    ggplot(aes(x = Week, y = TotalApparatus, fill = Week, group = 1)) +
+    geom_boxplot(show.legend = FALSE) +
+    scale_y_log10() +
+    xlab("Total Apparatus") +
+    ylab("Week") +
+    ggtitle("Total Apparatus vs Week") 
+  
+  gso.fire %>%
+    ggplot(aes(x = MonthName, y = TotalApparatus, fill = MonthName, group = 1)) +
+    geom_boxplot(show.legend = FALSE) +
+    xlab("Month") +
+    scale_y_log10() +
+    ylab("Total Apparatus") +
+    ggtitle("Total Apparatus vs Month") 
+  
+  gso.fire %>%
+    ggplot(aes(x = shift, y = TotalApparatus, fill = shift)) +
+    geom_boxplot(show.legend = FALSE) +
+    xlab("Shift") +
+    scale_y_log10() +
+    ylab("Total Apparatus") +
+    ggtitle("Total Apparatus vs Shift") 
+  
+  
+#Violin Plot for Total Apparatus vs. Time Variables
+  
+   gso.fire %>%
+    ggplot(aes(x = TotalApparatus, y = call_process_seconds, fill = TotalApparatus )) +
+    geom_violin(show.legend = FALSE) +
+    stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+    scale_y_log10() +
+    xlab("Total Apparatus") +
+    ylab("Call Processing Time") +
+    ggtitle("Total Apparatus vs Call Processing Time") 
+
+   gso.fire %>%
+    ggplot(aes(x = TotalApparatus, y = response_time_seconds, fill = TotalApparatus )) +
+    geom_violin(show.legend = FALSE) +
+    stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+    scale_y_log10() +
+    xlab("Total Apparatus") +
+    ylab("Response Time") +
+    ggtitle("Total Apparatus vs Response Time") 
+  
+   gso.fire %>%
+     ggplot(aes(x = TotalApparatus, y = total_response_seconds, fill = TotalApparatus )) +
+     geom_violin(show.legend = FALSE) +
+     stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+     scale_y_log10() +
+     xlab("Total Apparatus") +
+     ylab("Total Response Time") +
+     ggtitle("Total Apparatus vs Total Response Time") 
+   
+   #Violin Plot for Total Apparatus vs Date Variables
+   
+   gso.fire %>%
+     ggplot(aes(x = DayOfWeek, y = TotalApparatus, fill = DayOfWeek )) +
+     geom_violin(show.legend = FALSE) +
+     stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+     scale_y_log10() +
+     xlab("Day of Week") +
+     ylab("Total Apparatus") +
+     ggtitle("Total Apparatus vs Day of Week") 
+   
+   
+   gso.fire %>%
+     ggplot(aes(x = Week, y = TotalApparatus, fill = Week )) +
+     geom_violin(show.legend = FALSE) +
+     stat_summary(fun = mean, geom = "point", size = 2, show.legend = FALSE) +
+     scale_y_log10() +
+     xlab("Week") +
+     ylab("Total Apparatus") +
+     ggtitle("Total Apparatus vs Week") 
+   
+   
+   gso.fire %>%
+     ggplot(aes(x = MonthName, y = TotalApparatus, fill = MonthName)) +
+     geom_violin(show.legend = FALSE) +
+     stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+     scale_y_log10() +
+     xlab("Month") +
+     ylab("Total Apparatus") +
+     ggtitle("Total Apparatus vs Month") 
+   
+   gso.fire %>%
+     ggplot(aes(x = shift, y = TotalApparatus, fill = shift)) +
+     geom_violin(show.legend = FALSE) +
+     stat_summary(fun.y = mean, geom = "point", size = 2, show.legend = FALSE) +
+     scale_y_log10() +
+     xlab("Shift") +
+     ylab("Total Apparatus") +
+     ggtitle("Total Apparatus vs Shift") 
 
 
 
