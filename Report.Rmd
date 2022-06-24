@@ -258,22 +258,21 @@ gso.fire %>%
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
-  ggplot(aes(x = TotalStaffOnIncident, y = total_response_seconds, fill = TotalStaffOnIncident)) +
+  ggplot(aes(x = total_response_seconds, y = TotalStaffOnIncident, fill = total_response_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Total Staff On Incident") +
-  ylab("Total Response Time") +
+  ylab("Total Staff On Incident") +
+  xlab("Total Response Time") +
   ggtitle("Total Staff on Incident vs Total Response Time") +
   theme_economist()
 ```
 
 ##Scatter plot of Civilian Injuries vs Total Response Time
 ```{r}
-gso.fire %>%
-  filter(total_response_seconds < cutoff.total_response_time) %>%
-  ggplot(aes(x = CivilianInjuries, y = total_response_seconds, fill = CivilianInjuries)) +
+filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = total_response_seconds, y = CivilianInjuries, fill = total_response_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Civilian Injuries") +
-  ylab("Total Response Time") +
+  ylab("Civilian Injuries") +
+  xlab("Total Response Time") +
   ggtitle("Civilian Injuries vs Total Response Time") +
   theme_economist() 
 ```
@@ -282,10 +281,10 @@ gso.fire %>%
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
-  ggplot(aes(x = CivilianFatalities, y = total_response_seconds, fill = CivilianFatalities)) +
+  ggplot(aes(x = total_response_seconds, y = CivilianFatalities, fill = total_response_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Civilian Fatalities") +
-  ylab("Total Response Time") +
+  ylab("Civilian Fatalities") +
+  xlab("Total Response Time") +
   ggtitle("Civilian Fatalities vs Total Response Time") + 
   theme_economist()
 ```
@@ -294,10 +293,10 @@ gso.fire %>%
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
-  ggplot(aes(x = FireServiceInjuries, y = total_response_seconds, fill = FireServiceInjuries)) +
+  ggplot(aes(x = total_response_seconds, y = FireServiceInjuries, fill = total_response_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Fire Service Injuries") +
-  ylab("Total Response Time") +
+  ylab("Fire Service Injuries") +
+  xlab("Total Response Time") +
   ggtitle("Fire Service Injuries Injuries vs Total Response Time") +
   theme_economist()
 ```
@@ -306,12 +305,13 @@ gso.fire %>%
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
-  ggplot(aes(x = FireServiceFatalities, y = total_response_seconds, fill = FireServiceFatalities)) +
+  ggplot(aes(x = total_response_seconds, y = FireServiceFatalities, fill = TotalResponseTime)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Fire Service Fatalities") +
-  ylab("Total Response Time") +
+  ylab("Fire Service Fatalities") +
+  xlab("Total Response Time") +
   ggtitle("Fire Service Fatalities vs Total Response Time") +
-  theme_economist()
+  theme_economist() 
 ```
+
 
 
