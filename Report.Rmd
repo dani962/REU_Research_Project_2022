@@ -9,7 +9,19 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Loading necessary packages
+## Introduction
+Many calls are made to fire departments all the time. Whether it is a false alarm or not, it is important for first responders to take care of fire incidents as soon as possible.
+
+There are all kinds of fire incidents, some not even about fires. For example someone could be having a stroke and the local fire department was called to take action on the situation. If the incident is a fire, it could be at all kinds of different properties. Some different properties are small houses, apartment buildings, and highways. The fire could vary in size, like the wildfires in California.
+
+No matter the type of fire incident. It is vital that first responders attend to the situation quickly. Now, there can be some factors that can affect the response time of the first responders.
+Some of those factors are the location, the type of property, and the type of the incident.
+
+For more than ten years, the city of Greensboro, NC has been collecting data on fire incidents in their area. Some of this data includes the date of the incident, the response time, the location, and the type of property.
+
+For this project we will be visualizing the fire incidents in Greensboro, NC. Our research questions are 1) What factors affect the response time to fire incidents? 2) How to improve the response time? 3) How does response time by fire emergency services affect the rate of total loss and civilian injuries? 4)Can we build models to forecast the number of fire incidents in certain areas of Greensboro based on the data from 2010 to 2022?
+
+### Loading necessary packages
 
 ```{r}
 library(readr)
