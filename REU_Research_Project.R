@@ -433,20 +433,114 @@ gso.fire %>%
   ggtitle("Fire Service Fatalities vs Total Response Time") +
   theme_economist() 
 
+#  
+#BOX + VIOLIN
+#
 
-#...
-#combined box plot and violin plot
-#...
-
+#Box + Violin; Day
 gso.fire %>%
   filter(!is.na(total_response_seconds < cutoff.total_response_time)) %>%
   ggplot(aes(x = DayOfWeek, y = total_response_seconds, fill = DayOfWeek)) +
   geom_violin(trim = FALSE) +
-  geom_boxplot(width = 0.2) +
+  geom_boxplot(width = 0.3) +
   scale_y_log10() +
   xlab("Days of the Week") +
   ylab("Total Response Time (Seconds)") +
-  ggtitle("Violin Plot of Total Response Time Densities by Days of the Week") +
+  ggtitle("Violin & Box Plot of Total Response Time Densities by Days of the Week") +
   theme(axis.text.x = element_text(angle = 90), legend.position = "hide")
 
+#box + violin; week
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = Week, y = total_response_seconds, group = Week)) +
+  geom_violin() +
+  geom_boxplot(width = .1) +
+  xlab("Week") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Total Response Time Densities by the Week") +
+  theme_economist()
+
+#box + violin; year
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = Year, y = total_response_seconds, group = Year)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(aes(fill = "red"), show.legend = FALSE, width = .3 ) +
+  xlab("Year") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin & Box Plots of Total Response Time Densities by Year") 
+
+#box + violin; work shift
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = shift, y = total_response_seconds, fill = shift)) +
+  geom_violin() +
+  geom_boxplot(width = .5) +
+  xlab("Work shift") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Total Response Time Densities by Work Shift") +
+  theme_economist()
+
+#box + violin; fire district
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = FireDistrict, y = total_response_seconds, fill = FireDistrict)) +
+  geom_violin() +
+  geom_boxplot(show.legend = FALSE, width = .2) +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "hide") +
+  xlab("Fire District") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Total Response Time Densities by Fire District")
+
+#box + violin; month
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = Month, y = total_response_seconds, fill = Month)) +
+  geom_violin() +
+  geom_boxplot(show.legend = FALSE, width = .3) +
+  xlab("Month") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Total Response Time Densities by Month")
+
+#box + violin; station
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = station, y = total_response_seconds)) +
+  geom_violin() +
+  geom_boxplot(width = .2) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Station") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Total Response Time Densities by Station")
+
+#box + violin; alarm hour
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = AlarmHour, y = total_response_seconds, group = AlarmHour)) +
+  geom_violin() +
+  geom_boxplot(width = .3) +
+  xlab("Alarm Hour") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Total Response Time Densities by Alarm Hour")
+
+#box + violin; number of alarms
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = NumberOfAlarms, y = total_response_seconds, group = NumberOfAlarms)) +
+  geom_violin() +
+  geom_boxplot(width = .3) +
+  xlab("Number of Alarms") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Total Response Time Densities by Number of Alarms")
+
+#box + violin; nature code
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x =  NatureCode, y = total_response_seconds)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_violin() +
+  geom_boxplot(width = .1) +
+  xlab("Nature Code") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Total Response Time Densities by Nature Code")
 
