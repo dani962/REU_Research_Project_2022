@@ -332,6 +332,18 @@ gso.fire %>%
   ylab("Total Response Time (Seconds)") +
   ggtitle("Nature Code vs Total Response Time")
 
+#now looking at different years
+
+#box plot of month vs total response time in 2012
+gso.fire %>%
+  filter(Year == 2012 & !is.na(total_response_seconds)) %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = Month, y = total_response_seconds, fill = Month)) +
+  geom_boxplot(show.legend = FALSE) +
+  xlab("Month") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Month vs Total Response Time")
+
 #...
 #violin plots
 #...
@@ -420,4 +432,21 @@ gso.fire %>%
   xlab("Total Response Time") +
   ggtitle("Fire Service Fatalities vs Total Response Time") +
   theme_economist() 
+
+
+#...
+#combined box plot and violin plot
+#...
+
+gso.fire %>%
+  filter(!is.na(total_response_seconds < cutoff.total_response_time)) %>%
+  ggplot(aes(x = DayOfWeek, y = total_response_seconds, fill = DayOfWeek)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.2) +
+  scale_y_log10() +
+  xlab("Days of the Week") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Violin Plot of Total Response Time Densities by Days of the Week") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "hide")
+
 
