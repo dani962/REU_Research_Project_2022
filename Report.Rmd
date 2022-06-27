@@ -144,80 +144,6 @@ gso.fire %>%
   ggtitle("Frequency of Calls by Shift")
 ```
 
-## Bar graph of week in the year vs total response time
-```{r}
-gso.fire %>%
-  filter(!is.na(total_response_seconds)) %>%
-  ggplot(aes(x = Week, y = total_response_seconds, fill = Week)) +
-  geom_bar(stat = "identity") +
-  xlab("Week in the year") +
-  ylab("Total Response Time (Seconds)") +
-  ggtitle("Frequency of Total Response Time by Week")
-```
-
-## Bar graph of frequency of total response time by year
-```{r}
-gso.fire %>%
-  filter(!is.na(total_response_seconds)) %>%
-  ggplot(aes(x = Year, y = total_response_seconds, fill = Year)) +
-  geom_bar(stat = "identity") +
-  xlab("Year") +
-  ylab("Total Response Time (Seconds)") +
-  ggtitle("Frequency of Total Response Time by Year")
-```
-
-## Bar graph of frequency of total response time by fire district
-```{r}
-gso.fire %>%
-  filter(!is.na(total_response_seconds)) %>%
-  ggplot(aes(x = FireDistrict, y = total_response_seconds, fill = FireDistrict)) +
-  geom_bar(stat = "identity", show.legend = FALSE) +
-  xlab("Fire District") +
-  ylab("Total Response Time (Seconds)") +
-  ggtitle("Frequency of Total Response Time by Fire District") +
-  theme_clean() +
-  coord_flip()
-```
-
-## Bar graph of work shift vs total response time
-```{r}
-gso.fire %>%
-  filter(!is.na(total_response_seconds)) %>%
-  ggplot(aes(x = shift, y = total_response_seconds, fill = shift)) +
-  geom_bar(stat = "identity", show.legend = FALSE) +
-  xlab("Work Shifts") +
-  ylab("Total Response Time (Seconds)") +
-  ggtitle("Frequency of Total Response Time by Shift") +
-  theme_economist()
-```
-
-## Bar graph of month vs total response time
-```{r}
-gso.fire %>%
-  filter(!is.na(total_response_seconds)) %>%
-  ggplot(aes(x = Month, y = total_response_seconds, fill = Month)) +
-  geom_bar(stat = "identity", show.legend = FALSE) +
-  xlab("Month") +
-  ylab("Total Response Time (Seconds)") +
-  ggtitle("Frequency of Total Response Time by Month") +
-  theme_economist()
-```
-
-## Bar graph of station vs total response time
-#### Had trouble trying to reorder bars
-```{r}
-gso.fire %>%
-  filter(!is.na(total_response_seconds)) %>%
-  #mutate(station = reorder(station, total_response_seconds)) %>%
-  ggplot(aes(x = station, y = total_response_seconds, fill = station)) +
-  geom_bar(stat = "identity", show.legend = FALSE) +
-  theme(axis.text.y = element_text(size = 6)) +
-  xlab("Station") +
-  ylab("Total Response Time (Seconds)") +
-  ggtitle("Frequency of Total Response Time by Station") +
-  coord_flip()
-```
-
 ## Box plot of days of the week vs total response time
 ```{r}
 gso.fire %>%
@@ -230,16 +156,27 @@ gso.fire %>%
   theme_economist()
 ```
 
-## Box plot of work shift vs total response time
+## Box plot of week vs total response time
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
-  ggplot(aes(x = shift, y = total_response_seconds, fill = shift)) +
+  ggplot(aes(x = Week, y = total_response_seconds, group = Week)) +
   geom_boxplot() +
-  xlab("Work shift") +
+  xlab("Week") +
   ylab("Total Response Time (Seconds)") +
-  ggtitle("Work Shift vs Total Response Time") +
+  ggtitle("Week vs Total Response Time") +
   theme_economist()
+```
+
+## Box plot of year vs total response time
+```{r}
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = Year, y = total_response_seconds, group = Year)) +
+  geom_boxplot(aes(fill = "red"), show.legend = FALSE) +
+  xlab("Year") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Year vs Total Response Time")
 ```
 
 ## Box plot of fire district vs total response time
@@ -254,7 +191,76 @@ gso.fire %>%
   ggtitle("Fire District vs Total Response Time")
 ```
 
-##Scatter plot of Total Staff on Incident vs Total Response
+## Box plot of work shift vs total response time
+```{r}
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = shift, y = total_response_seconds, fill = shift)) +
+  geom_boxplot() +
+  xlab("Work shift") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Work Shift vs Total Response Time") +
+  theme_economist()
+```
+
+## Box plot of month vs total response time
+```{r}
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = Month, y = total_response_seconds, fill = Month)) +
+  geom_boxplot(show.legend = FALSE) +
+  xlab("Month") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Month vs Total Response Time")
+```
+
+## Box plot of station vs total response time
+```{r}
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = station, y = total_response_seconds)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Station") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Station vs Total Response Time")
+```
+
+## Box plot of alarm hour vs total response time
+```{r}
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = AlarmHour, y = total_response_seconds, group = AlarmHour)) +
+  geom_boxplot() +
+  xlab("Alarm Hour") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Alarm Hour vs Total Response Time")
+```
+
+## Box plot of number of alarms vs total response time
+```{r}
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = NumberOfAlarms, y = total_response_seconds, group = NumberOfAlarms)) +
+  geom_boxplot() +
+  xlab("Number of Alarms") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Number of Alarms vs Total Response Time")
+```
+
+## Box plot of nature code vs total response time
+```{r}
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x =  NatureCode, y = total_response_seconds)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_boxplot() +
+  xlab("Nature Code") +
+  ylab("Total Response Time (Seconds)") +
+  ggtitle("Nature Code vs Total Response Time")
+```
+
+## Scatter plot of Total Staff on Incident vs Total Response
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
@@ -266,9 +272,10 @@ gso.fire %>%
   theme_economist()
 ```
 
-##Scatter plot of Civilian Injuries vs Total Response Time
+## Scatter plot of Civilian Injuries vs Total Response Time
 ```{r}
-filter(total_response_seconds < cutoff.total_response_time) %>%
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
   ggplot(aes(x = total_response_seconds, y = CivilianInjuries, fill = total_response_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
   ylab("Civilian Injuries") +
@@ -277,7 +284,7 @@ filter(total_response_seconds < cutoff.total_response_time) %>%
   theme_economist() 
 ```
 
-##Scatter Plot for Civilian Fatalities vs Total Response Time
+## Scatter Plot for Civilian Fatalities vs Total Response Time
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
@@ -289,7 +296,7 @@ gso.fire %>%
   theme_economist()
 ```
 
-##Scatter Plot for Fire Service Injuries vs Total Response Time
+## Scatter Plot for Fire Service Injuries vs Total Response Time
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
@@ -301,7 +308,7 @@ gso.fire %>%
   theme_economist()
 ```
 
-#Scatter Plot for Fire Service Fatalities vs Total Response Time
+## Scatter Plot for Fire Service Fatalities vs Total Response Time
 ```{r}
 gso.fire %>%
   filter(total_response_seconds < cutoff.total_response_time) %>%
