@@ -284,6 +284,18 @@ gso.fire %>%
   theme_economist()
 ```
 
+## Scatter plot of Total Apparatus vs Total Response Time
+```{r}
+gso.fire %>%
+  filter(total_response_seconds < cutoff.total_response_time) %>%
+  ggplot(aes(x = total_response_seconds, y = TotalApparatus, fill = total_response_seconds)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  ylab("Total Apparatus") +
+  xlab("Total Response Time") +
+  ggtitle("Total Apparatus vs Total Response Time") +
+  theme_economist()
+```
+
 ## Scatter plot of Civilian Injuries vs Total Response Time
 ```{r}
 gso.fire %>%
