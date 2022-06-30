@@ -23,6 +23,9 @@ For this project we will be visualizing the fire incidents in Greensboro, NC. Ou
 
 ## Related Literature
 
+## Method
+### Exploratory Data Analysis
+
 ### Loading necessary packages
 
 ```{r, message=FALSE, warning=FALSE}
@@ -387,7 +390,7 @@ gso.fire %>%
 
 
 ## Box and violin plot for fire district vs response time
-```{r}
+```{r, message=FALSE, warning=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = FireDistrict, y = response_time_seconds, fill = FireDistrict)) +
@@ -428,7 +431,7 @@ gso.fire %>%
 
 
 ## Box and violin plot of number of alarms vs response time
-```{r}
+```{r, message=FALSE, warning=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = NumberOfAlarms, y = response_time_seconds, group = NumberOfAlarms)) +
