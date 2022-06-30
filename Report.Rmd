@@ -17,7 +17,7 @@ There are all kinds of fire incidents, some not even about fires. For example so
 No matter the type of fire incident. It is vital that first responders attend to the situation quickly. Now, there can be some factors that can affect the response time of the first responders.
 Some of those factors are the location, the type of property, and the type of the incident.
 
-For more than ten years, the city of Greensboro, NC has been collecting data on fire incidents in their area. Some of this data includes the date of the incident, the response time, the location, and the type of property.
+For more than ten years, the city of Greensboro, NC has been collecting data on fire incidents in their area. Some of this data includes the date of the incident, the response time, the location, and the type of property. Yet, take note when looking at the data that it goes from July 1, 2010, to Jun 1, 2022. So for the years 2010 and 2022, only data for about half of those years was collected.
 
 For this project we will be visualizing the fire incidents in Greensboro, NC. Our research questions are 1) What factors affect the response time to fire incidents? 2) How to improve the response time? 3) How does response time by fire emergency services affect the rate of total loss and civilian injuries? 4)Can we build models to forecast the number of fire incidents in certain areas of Greensboro based on the data from 2010 to 2022? 5) what Dynamic models can we make for forecasting fire incidents?
 
@@ -145,34 +145,25 @@ gso.fire %>%
 ```{r}
 gso.fire %>%
   count(Year) %>%
-  mutate(Year = reorder(Year, n)) %>%
   ggplot(aes(x = Year, y = n)) +
-  geom_bar(stat = "identity", color = "black", fill = "light blue") +
+  geom_bar(stat = "identity", fill = "pink", color = "black") +
+  scale_x_continuous(breaks = seq(2010,2022,1)) +
   xlab("Year") +
   ylab("Count") +
   ggtitle("Frequency of Calls by Year")
 ```
 
+
 ## Bar graph of frequency of calls by shift
 ```{r}
 gso.fire %>%
   ggplot(aes(x = shift)) +
-  geom_bar(aes(fill = shift), color = "black", show.legend = FALSE) +
+  geom_bar(show.legend = FALSE, fill = "pink", color = "black") +
   xlab("Shift") +
   ylab("Count") +
   ggtitle("Frequency of Calls by Shift")
 ```
 
-## Box plot of days of the week vs response time
-```{r}
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = DayOfWeek, y = response_time_seconds, fill = DayOfWeek)) +
-  geom_boxplot(show.legend = FALSE) +
-  xlab("Days of the Week") +
-  ylab("Response Time (Seconds)") +
-  ggtitle("Days of the Week vs Repsonse Time")
-```
 
 ## Box plot of week vs response time
 ```{r}
@@ -181,57 +172,12 @@ gso.fire %>%
   ggplot(aes(x = Week, y = response_time_seconds, group = Week)) +
   geom_boxplot() +
   scale_x_continuous(breaks = seq(1,53,1)) +
-  theme(axis.text.x = element_text(angle = 45)) +
+  theme(axis.text.x = element_text(angle = 90)) +
   xlab("Week") +
   ylab("Response Time (Seconds)") +
   ggtitle("Week vs Response Time")
 ```
 
-## Box plot of year vs response time
-```{r}
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = Year, y = response_time_seconds, group = Year)) +
-  geom_boxplot(show.legend = FALSE) +
-  scale_x_continuous(breaks = seq(2010,2022,1)) +
-  xlab("Year") +
-  ylab("Response Time (Seconds)") +
-  ggtitle("Year vs Response Time")
-```
-
-## Box plot of fire district vs response time
-```{r}
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = FireDistrict, y = response_time_seconds)) +
-  geom_boxplot(show.legend = FALSE) +
-  theme(axis.text.x = element_text(angle = 90)) +
-  xlab("Fire District") +
-  ylab("Response Time (Seconds)") +
-  ggtitle("Fire District vs Response Time")
-```
-
-## Box plot of work shift vs response time
-```{r}
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = shift, y = response_time_seconds, fill = shift)) +
-  geom_boxplot(show.legend = FALSE) +
-  xlab("Work shift") +
-  ylab("Response Time (Seconds)") +
-  ggtitle("Work Shift vs Response Time")
-```
-
-## Box plot of month vs response time
-```{r}
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = Month, y = response_time_seconds)) +
-  geom_boxplot(show.legend = FALSE) +
-  xlab("Month") +
-  ylab("Response Time (Seconds)") +
-  ggtitle("Month vs Response Time")
-```
 
 ## Box plot of station vs total response time
 ```{r}
@@ -243,30 +189,6 @@ gso.fire %>%
   xlab("Station") +
   ylab("Response Time (Seconds)") +
   ggtitle("Station vs Response Time")
-```
-
-## Box plot of alarm hour vs total response time
-```{r}
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = AlarmHour, y = response_time_seconds, group = AlarmHour)) +
-  geom_boxplot() +
-  scale_x_continuous(breaks = seq(0,23,1)) +
-  xlab("Alarm Hour") +
-  ylab("Response Time (Seconds)") +
-  ggtitle("Alarm Hour vs Response Time")
-```
-
-
-## Box plot of number of alarms vs response time
-```{r}
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = NumberOfAlarms, y = response_time_seconds, group = NumberOfAlarms)) +
-  geom_boxplot(show.legend = FALSE) +
-  xlab("Number of Alarms") +
-  ylab("Response Time (Seconds)") +
-  ggtitle("Number of Alarms vs Response Time")
 ```
 
 
@@ -353,9 +275,9 @@ gso.fire %>%
 gso.fire %>%
   filter(!is.na(response_time_seconds)) %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = DayOfWeek, y = response_time_seconds, fill = DayOfWeek)) +
-  geom_violin(trim = FALSE) +
-  geom_boxplot(width = 0.3) +
+  ggplot(aes(x = DayOfWeek, y = response_time_seconds)) +
+  geom_violin(trim = FALSE, fill = "light blue") +
+  geom_boxplot(width = 0.3, fill = "pink") +
   xlab("Days of the Week") +
   ylab("Response Time (Seconds)") +
   ggtitle("Violin & Box Plot of Response Time Densities by Days of the Week") +
@@ -363,13 +285,14 @@ gso.fire %>%
 ```
 
 
-## Box and violin plot for year vs total response time
+## Box and violin plot for year vs response time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = Year, y = response_time_seconds, group = Year)) +
-  geom_violin(trim = FALSE) +
-  geom_boxplot(aes(fill = "red"), show.legend = FALSE, width = .3 ) +
+  geom_violin(trim = FALSE, fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .3, fill = "pink") +
+  scale_x_continuous(breaks = seq(2010,2022,1)) +
   xlab("Year") +
   ylab("Response Time (Seconds)") +
   ggtitle("Violin & Box Plots of Response Time Densities by Year")
@@ -380,9 +303,9 @@ gso.fire %>%
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = shift, y = response_time_seconds, fill = shift)) +
-  geom_violin(show.legend = FALSE) +
-  geom_boxplot(width = .5, show.legend = FALSE) +
+  ggplot(aes(x = shift, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
   xlab("Work shift") +
   ylab("Response Time (Seconds)") +
   ggtitle("Violin and Box Plot of Response Time Densities by Work Shift")
@@ -393,9 +316,9 @@ gso.fire %>%
 ```{r, message=FALSE, warning=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = FireDistrict, y = response_time_seconds, fill = FireDistrict)) +
-  geom_violin() +
-  geom_boxplot(show.legend = FALSE, width = .2) +
+  ggplot(aes(x = FireDistrict, y = response_time_seconds)) +
+  geom_violin(fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .2, fill = "pink") +
   theme(axis.text.x = element_text(angle = 90), legend.position = "hide") +
   xlab("Fire District") +
   ylab("Response Time (Seconds)") +
@@ -407,9 +330,9 @@ gso.fire %>%
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = Month, y = response_time_seconds, fill = Month)) +
-  geom_violin(show.legend = FALSE) +
-  geom_boxplot(show.legend = FALSE, width = .3) +
+  ggplot(aes(x = Month, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .3, fill = "pink") +
   xlab("Month") +
   ylab("Response Time (Seconds)") +
   ggtitle("Violin and Box Plot of Response Time Densities by Month")
