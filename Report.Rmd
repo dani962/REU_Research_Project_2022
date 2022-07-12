@@ -25,8 +25,9 @@ For this project we will be visualizing the fire incidents in Greensboro, NC. Ou
 
 ## Method
 ### Exploratory Data Analysis
+The first step in our research project was exploratory data analysis. We investigated the data looking for patterns and outliers. This was carried out by making various graphical representations of the data.
 
-### Loading necessary packages
+#### Loading necessary packages
 
 ```{r, message=FALSE, warning=FALSE}
 library(readr)
@@ -38,13 +39,13 @@ library(ggrepel)
 library(ggthemes)
 ```
 
-### Data Preprocessing
+#### Data Preprocessing
 ```{r, message=FALSE, warning=FALSE}
 gso.fire <- read_csv("Greensboro_Fire_Incidents.csv")
 ```
 
 
-### Filtering for incidents prior to June 1st 2022
+#### Filtering for incidents prior to June 1st 2022
 ```{r}
 gso.fire = 
   gso.fire %>%
@@ -52,27 +53,27 @@ gso.fire =
   filter(AlarmDate2 < '2022-06-01')
 ```
 
-### Filter for property type 1-2 family dwellings
+#### Filter for property type 1-2 family dwellings
 ```{r}
 gso.fire = gso.fire %>%
   filter(PropertyUse == '419 - 1 or 2 family dwelling')
 ```
 
-### Convert to call process time to seconds and add to gso.fire
+#### Convert to call process time to seconds and add to gso.fire
 ```{r}
 gso.fire = gso.fire %>%
   mutate(call_process_period = lubridate::hms(CallProcessingTime), 
          call_process_seconds = period_to_seconds(call_process_period))
 ```
 
-### Convert response time to seconds and add to gso.fire
+#### Convert response time to seconds and add to gso.fire
 ```{r, message=FALSE, warning=FALSE}
 gso.fire = gso.fire %>%
   mutate(response_time_period = lubridate::hms(ResponseTime),
          response_time_seconds = period_to_seconds(response_time_period))
 ```
 
-### Convert total response time to seconds and add to gso.fire
+#### Convert total response time to seconds and add to gso.fire
 ```{r, message=FALSE, warning=FALSE}
 gso.fire = gso.fire %>%
   mutate(total_response_period = lubridate::hms(TotalResponseTime),
@@ -87,8 +88,9 @@ cutoff.response_time = gso.fire %>% select(response_time_seconds) %>%
   pull(c)
 ```
 
+## Graphs
 
-## Histogram of distribution of response time
+### Histogram of distribution of response time
 ```{r, message=FALSE, warning=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -100,8 +102,9 @@ gso.fire %>%
   theme_economist()
 ```
 
+For the histogram above, we learned that the typical response time falls between about 100 seconds to 400 seconds and that the distribution is normal.
 
-## Histogram of frequency of fire alarms by alarm hour
+### Bar graph of frequency of fire alarms by alarm hour
 ```{r}
 gso.fire %>%
   ggplot(aes(x = AlarmHour)) +
@@ -113,7 +116,9 @@ gso.fire %>%
   ggtitle("Frequency of Fire Alarms by Alarm Hour")
 ```
 
-## Bar graph of frequency of calls by fire station
+From this bar graph, it can be seen that the frequency of calls to the fire stations are less during the middle of the night and increase as people start waking up.
+
+### Bar graph of frequency of calls by fire station
 ```{r}
 gso.fire %>%
   count(station) %>%
@@ -127,7 +132,7 @@ gso.fire %>%
   coord_flip()
 ```
 
-## Bar graph of frequency of calls by fire district
+### Bar graph of frequency of calls by fire district
 ```{r}
 gso.fire %>%
   count(FireDistrict) %>%
@@ -141,7 +146,7 @@ gso.fire %>%
   coord_flip()
 ```
 
-## Bar graph of frequency of calls by year
+### Bar graph of frequency of calls by year
 ```{r}
 gso.fire %>%
   count(Year) %>%
@@ -154,7 +159,7 @@ gso.fire %>%
 ```
 
 
-## Bar graph of frequency of calls by shift
+### Bar graph of frequency of calls by shift
 ```{r}
 gso.fire %>%
   ggplot(aes(x = shift)) +
@@ -164,7 +169,7 @@ gso.fire %>%
   ggtitle("Frequency of Calls by Shift")
 ```
 
-## Bar graph of frequency of calls by days of the week
+### Bar graph of frequency of calls by days of the week
 ```{r}
 gso.fire %>%
   ggplot(aes(x = DayOfWeek)) +
@@ -174,7 +179,7 @@ gso.fire %>%
   ggtitle("Frequency of Calls by Days of the Week")
 ```
 
-## Bar graph of frequency of calls by week
+### Bar graph of frequency of calls by week
 ```{r}
 gso.fire %>%
   ggplot(aes(x = Week)) +
@@ -186,7 +191,7 @@ gso.fire %>%
   ggtitle("Frequency of Calls by Week")
 ```
 
-## Bar graph of frequency of calls by month 
+### Bar graph of frequency of calls by month 
 ```{r}
 gso.fire %>%
   ggplot(aes(x = Month)) +
@@ -197,7 +202,7 @@ gso.fire %>%
 ```
 
 
-## Box plot of week vs response time
+### Box plot of week vs response time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -211,7 +216,7 @@ gso.fire %>%
 ```
 
 
-## Box plot of station vs total response time
+### Box plot of station vs total response time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -224,7 +229,7 @@ gso.fire %>%
 ```
 
 
-## Box plot of nature code vs total response time
+### Box plot of nature code vs total response time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -237,7 +242,7 @@ gso.fire %>%
 ```
 
 
-## Scatter plot of Total Staff on Incident vs Response Time
+### Scatter plot of Total Staff on Incident vs Response Time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -250,7 +255,7 @@ gso.fire %>%
 ```
 
 
-## Scatter plot of Civilian Injuries vs Response Time
+### Scatter plot of Civilian Injuries vs Response Time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -263,7 +268,7 @@ gso.fire %>%
 ```
 
 
-## Scatter Plot for Civilian Fatalities vs Response Time
+### Scatter Plot for Civilian Fatalities vs Response Time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -276,7 +281,7 @@ gso.fire %>%
 ```
 
 
-## Scatter Plot for Fire Service Injuries vs Response Time
+### Scatter Plot for Fire Service Injuries vs Response Time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -289,7 +294,7 @@ gso.fire %>%
 ```
 
 
-## Scatter Plot for Fire Service Fatalities vs Response Time
+### Scatter Plot for Fire Service Fatalities vs Response Time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -302,7 +307,7 @@ gso.fire %>%
 ```
 
 
-## Box and Violin plot for days of the week vs response time
+### Box and Violin plot for days of the week vs response time
 ```{r}
 gso.fire %>%
   filter(!is.na(response_time_seconds)) %>%
@@ -317,7 +322,7 @@ gso.fire %>%
 ```
 
 
-## Box and violin plot for year vs response time
+### Box and violin plot for year vs response time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -331,7 +336,7 @@ gso.fire %>%
 ```
 
 
-## Box and violin plot for work shift vs response time
+### Box and violin plot for work shift vs response time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -344,7 +349,7 @@ gso.fire %>%
 ```
 
 
-## Box and violin plot for fire district vs response time
+### Box and violin plot for fire district vs response time
 ```{r, message=FALSE, warning=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -358,7 +363,7 @@ gso.fire %>%
 ```
 
 
-## Box and violin plot for month vs response time
+### Box and violin plot for month vs response time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -371,7 +376,7 @@ gso.fire %>%
 ```
 
 
-## Box and violin plot for alarm hour vs total response time
+### Box and violin plot for alarm hour vs total response time
 ```{r}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -385,7 +390,7 @@ gso.fire %>%
 ```
 
 
-## Box and violin plot of number of alarms vs response time
+### Box and violin plot of number of alarms vs response time
 ```{r, message=FALSE, warning=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -397,29 +402,29 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Number of Alarms")
 ```
 
-##Time Series Forecasting
+## Time Series Forecasting
 
-## Filtering data
+#### Filtering data
 ```{r}
 gso.fire.filtered = gso.fire %>%
   filter(response_time_seconds < cutoff.response_time)
 ```
 
-## Daily number of fire incidents
+#### Daily number of fire incidents
 ```{r}
 gso.fire.ts = gso.fire %>%
   count(AlarmDate2)
 ```
 
 
-## Modeling response time
+### Modeling response time
 ```{r}
 lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month, 
                  data = gso.fire.filtered)
 ```
 
 
-## Time series of daily number of fire incidents for 2010
+### Time series of daily number of fire incidents for 2010
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2010-01-01" & AlarmDate2 <= "2010-12-31") %>%
@@ -431,7 +436,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2011
+### Time series of daily number of fire incidents for 2011
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2011-01-01" & AlarmDate2 <= "2011-12-31") %>%
@@ -443,7 +448,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2012
+### Time series of daily number of fire incidents for 2012
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2012-01-01" & AlarmDate2 <= "2012-12-31") %>%
@@ -455,7 +460,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2013
+### Time series of daily number of fire incidents for 2013
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2013-01-01" & AlarmDate2 <= "2013-12-31") %>%
@@ -467,7 +472,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2014
+### Time series of daily number of fire incidents for 2014
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2014-01-01" & AlarmDate2 <= "2014-12-31") %>%
@@ -479,7 +484,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2015
+### Time series of daily number of fire incidents for 2015
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2015-01-01" & AlarmDate2 <= "2015-12-31") %>%
@@ -491,7 +496,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2016
+### Time series of daily number of fire incidents for 2016
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2016-01-01" & AlarmDate2 <= "2016-12-31") %>%
@@ -503,7 +508,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2017
+### Time series of daily number of fire incidents for 2017
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2017-01-01" & AlarmDate2 <= "2017-12-31") %>%
@@ -515,7 +520,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2018
+### Time series of daily number of fire incidents for 2018
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2018-01-01" & AlarmDate2 <= "2018-12-31") %>%
@@ -527,7 +532,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2019
+### Time series of daily number of fire incidents for 2019
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2019-01-01" & AlarmDate2 <= "2019-12-31") %>%
@@ -539,7 +544,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2020
+### Time series of daily number of fire incidents for 2020
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2020-01-01" & AlarmDate2 <= "2020-12-31") %>%
@@ -551,7 +556,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2021
+### Time series of daily number of fire incidents for 2021
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2021-01-01" & AlarmDate2 <= "2021-12-31") %>%
@@ -563,7 +568,7 @@ gso.fire.ts %>%
 ```
 
 
-## Time series of daily number of fire incidents for 2022
+### Time series of daily number of fire incidents for 2022
 ```{r}
 gso.fire.ts %>%
   filter(AlarmDate2 >= "2022-01-01" & AlarmDate2 <= "2022-12-31") %>%
@@ -575,7 +580,7 @@ gso.fire.ts %>%
 ```
 
 
-## Monthly number of fire incidents
+#### Monthly number of fire incidents
 ```{r}
 gso.fire.ts.month = gso.fire %>%
   group_by(Year, Month) %>%

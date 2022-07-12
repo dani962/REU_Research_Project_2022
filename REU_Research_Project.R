@@ -60,7 +60,11 @@ gso.fire %>%
   ggtitle("Distribution of Response Time") +
   theme_economist()
 
-#histogram of frequency of fire alarms by alarm hour
+#...
+#bar graphs
+#...
+
+#bar graph of frequency of fire alarms by alarm hour
 gso.fire %>%
   ggplot(aes(x = AlarmHour)) +
   geom_bar(color = "black", fill = "pink") +
@@ -70,10 +74,6 @@ gso.fire %>%
   ylab("Count") +
   ggtitle("Frequency of Fire Alarms by Alarm Hour")
 
-
-#...
-#bar graphs
-#...
 
 #bar graph of frequency of calls by fire station
 gso.fire %>%
