@@ -27,6 +27,8 @@ file:///Users/nah8m/Downloads/KCK.andCorcoranJ.2017.Modellingresidentialfireinci
 
 file:///Users/nah8m/Downloads/Relationshipbetweenfireserviceresponseandfiregrowth.pdf
 
+https://www.researchgate.net/publication/333158843_Statistical_Analysis_of_Fire_Department_Response_Times_and_Effects_on_Fire_Outcomes_in_the_United_States (need to request) 
+
 ## Method
 ### Exploratory Data Analysis
 The first step in our research project was exploratory data analysis. We investigated the data looking for patterns and outliers. This was carried out by making various graphical representations of the data.
@@ -423,8 +425,10 @@ gso.fire.ts = gso.fire %>%
 
 ### Modeling response time
 ```{r}
-lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month, 
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + station + AlarmHour, 
                  data = gso.fire.filtered)
+                
+summary(lm.res.time)
 ```
 
 
