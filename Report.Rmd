@@ -944,3 +944,38 @@ gso.fire.ts.week %>%
   ggtitle("Time series of weekly number of fire incidents for 2022")
 ```
 
+## Modeling of Response Time
+
+#### Filtering data
+```{r}
+gso.fire.filtered = gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time)
+```
+
+```{r}
+gso.fire.filtered = gso.fire.filtered %>% 
+  mutate(AlarmHour = as.factor(AlarmHour))
+  
+```
+
+### Modeling response time
+```{r}
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour , 
+                 data = gso.fire.filtered)
+```
+
+#### Results from lm.res.time
+```{r}
+summary(lm.res.time)
+```
+
+
+
+#### Varaible Selection
+```{r}
+library(MASS)
+lm.res.time.select = stepAIC(lm.res.time)
+summary(lm.res.time.select)
+
+```
+
