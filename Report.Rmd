@@ -23,6 +23,10 @@ For this project we will be visualizing the fire incidents in Greensboro, NC. Ou
 
 ## Related Literature
 
+file:///Users/nah8m/Downloads/KCK.andCorcoranJ.2017.Modellingresidentialfireincidentresponsetimes.pdf
+
+file:///Users/nah8m/Downloads/Relationshipbetweenfireserviceresponseandfiregrowth.pdf
+
 ## Method
 ### Exploratory Data Analysis
 The first step in our research project was exploratory data analysis. We investigated the data looking for patterns and outliers. This was carried out by making various graphical representations of the data.
