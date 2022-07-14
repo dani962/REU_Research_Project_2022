@@ -5,7 +5,7 @@ date: '2022-06-22'
 output: html_document
 ---
 
-```{r setup}
+```{r setup, echo = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -35,7 +35,7 @@ The first step in our research project was exploratory data analysis. We investi
 
 #### Loading necessary packages
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 library(readr)
 library(lubridate)
 library(ggplot2)
@@ -409,7 +409,7 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Number of Alarms")
 ```
 
-## Time Series Forecasting
+## Modeling of Response time
 
 #### Filtering data
 ```{r}
@@ -417,17 +417,16 @@ gso.fire.filtered = gso.fire %>%
   filter(response_time_seconds < cutoff.response_time)
 ```
 
-#### Daily number of fire incidents
-```{r}
-gso.fire.ts = gso.fire %>%
-  count(AlarmDate2)
-```
 
+```{r}
+gso.fire.filtered = gso.fire.filtered %>% 
+  mutate(AlarmHour = as.factor(AlarmHour))
+  
+```
 
 ### Modeling response time
 ```{r}
-lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + 
-                   Month + Week + AlarmHour + station, 
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour , 
                  data = gso.fire.filtered)
 ```
 
@@ -436,43 +435,19 @@ lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + D
 summary(lm.res.time)
 ```
 
-### Took out Week variable
+
+#### Variable Selection
 ```{r}
-lm.res.time.2 = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + 
-                   Month + AlarmHour + station, 
-                 data = gso.fire.filtered)
+library(MASS)
+lm.res.time.select = stepAIC(lm.res.time)
+summary(lm.res.time.select)
 ```
 
-#### Results from lm.res.time.2
+
+#### Daily number of fire incidents
 ```{r}
-summary(lm.res.time.2)
-
-```
-
-### Took out DayOfWeek variable
-```{r}
-lm.res.time.3 = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + shift + Month +
-                     AlarmHour + station, 
-                   data = gso.fire.filtered)
-```
-
-#### Results from lm.res.time.3
-```{r}
-summary(lm.res.time.3)
-
-```
-
-### Took out station variable
-```{r}
-lm.res.time.4 = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + shift + Month +
-                     AlarmHour, 
-                   data = gso.fire.filtered)
-```
-
-#### Results from lm.res.time.4
-```{r}
-summary(lm.res.time.4)
-
+gso.fire.ts = gso.fire %>%
+  count(AlarmDate2)
 ```
 
 
@@ -942,40 +917,5 @@ gso.fire.ts.week %>%
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2022")
-```
-
-## Modeling of Response Time
-
-#### Filtering data
-```{r}
-gso.fire.filtered = gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time)
-```
-
-```{r}
-gso.fire.filtered = gso.fire.filtered %>% 
-  mutate(AlarmHour = as.factor(AlarmHour))
-  
-```
-
-### Modeling response time
-```{r}
-lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour , 
-                 data = gso.fire.filtered)
-```
-
-#### Results from lm.res.time
-```{r}
-summary(lm.res.time)
-```
-
-
-
-#### Varaible Selection
-```{r}
-library(MASS)
-lm.res.time.select = stepAIC(lm.res.time)
-summary(lm.res.time.select)
-
 ```
 

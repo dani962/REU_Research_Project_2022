@@ -6,6 +6,7 @@ library(dplyr)
 library(ggrepel)
 library(ggthemes)
 library(broom)
+library(MASS)
 
 #loading data set
 gso.fire <- read_csv("Greensboro_Fire_Incidents.csv")
@@ -338,39 +339,17 @@ gso.fire %>%
 gso.fire.filtered = gso.fire %>%
   filter(response_time_seconds < cutoff.response_time)
 
+
 #Modeling response time
-lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + 
-                   Month + Week + AlarmHour + station, 
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour , 
                  data = gso.fire.filtered)
 
-tidy(lm.res.time)
 #Results from lm.res.time
 summary(lm.res.time)
-hist(residuals(lm.res.time))
 
-#took out Week variable
-lm.res.time.2 = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + 
-                   Month + AlarmHour + station, 
-                 data = gso.fire.filtered)
-
-#Results from lm.res.time.2
-summary(lm.res.time.2)
-
-#took out DayOfWeek variable
-lm.res.time.3 = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + shift + Month +
-                     AlarmHour + station, 
-                   data = gso.fire.filtered)
-
-#Results from lm.res.time.3
-summary(lm.res.time.3)
-
-#took out station variable
-lm.res.time.4 = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + shift + Month +
-                     AlarmHour, 
-                   data = gso.fire.filtered)
-
-#Results from lm.res.time.4
-summary(lm.res.time.4)
+#Variable Selection
+lm.res.time.select = stepAIC(lm.res.time)
+summary(lm.res.time.select)
 
 
 #daily number of fire incidents
