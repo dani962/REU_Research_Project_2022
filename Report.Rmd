@@ -2,7 +2,9 @@
 title: "Statistical Analysis of Fire Incidents in the City of Greensboro, NC"
 author: "Danielle Mirzaeian, Nahom Fisseha"
 date: '2022-06-22'
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, echo= FALSE}
@@ -143,6 +145,7 @@ gso.fire %>%
   coord_flip()
 ```
 
+For this graph, we wanted to find out which fire stations got the most calls. Note that the calls counted are from July 1, 2010 to Jun 1, 2022. From the results we can tell that the top five fire stations that got the most calls over ten years in Greensboro NC, was 7, 8, 14, 4, and 56.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -153,9 +156,11 @@ gso.fire %>%
   theme(axis.text.y = element_text(size = 6)) +
   xlab("Fire Station (Station Number)") +
   ylab("Count") +
-  ggtitle("Frequency of Calls by Fire Station") +
+  ggtitle("Frequency of Calls by Fire District") +
   coord_flip()
 ```
+
+For this bar plot, we wanted to find out which fire districts got the most calls in Greensboro, NC over ten years. The fire districts consist of a few fire stations. The most popular fire districts from this bar plot from greatest to least were Battalion II, Battalion I and Battalion III.
 
 
 ```{r, echo=FALSE}
@@ -169,7 +174,7 @@ gso.fire %>%
   ggtitle("Frequency of Calls by Year")
 ```
 
-
+From this graph, we wanted to learn if there were some years that had a significant difference in number of phone calls to the fire stations in Greensboro, NC. By looking at those differences we could explore how response time varied between years that were busier than others. Note from this graph, that only half of the data was collected for the years 2010 and 2022, so those bars will be obviously lower than the bars of other years displayed in the graph.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -180,6 +185,7 @@ gso.fire %>%
   ggtitle("Frequency of Calls by Shift")
 ```
 
+This visual was created to look at if the number of calls to the fire station would vary depending on which shift was currently working. For this data, there were three shifts, A, B, and C. From the results, it can be seen that there is no obvious difference in the frequency of the calls to the fire station on different work shifts.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -190,6 +196,7 @@ gso.fire %>%
   ggtitle("Frequency of Calls by Days of the Week")
 ```
 
+From this bar graph, it can be seen that the frequency of calls to the fire station over ten years ended up being about the same between each day of the week with no obvious differences.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -202,6 +209,7 @@ gso.fire %>%
   ggtitle("Frequency of Calls by Week")
 ```
 
+From the bar plot above, it is shown that the first week and the last week of the year typically had fewer calls to the fire station compared to other weeks in the year. This graph had a little more variability in frequency in calls. For example, the dip in the middle of the bar plot. This plot helps us to look at the busier times in the data and compare the response times.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -211,6 +219,9 @@ gso.fire %>%
   ylab("Count") +
   ggtitle("Frequency of Calls by Month")
 ```
+
+This visual was used to look further into if there was a higher frequency of calls to fire stations in certain parts of the year. From the results, June and February seem to have the lowest frequency of calls, while January and December have the highest frequency of calls. With this knowledge we can look at how response time varied with those months.
+
 
 #### Bivariate Explorations
 Data Visualizations of a given variable vs response time
@@ -228,7 +239,7 @@ gso.fire %>%
   ggtitle("Week vs Response Time")
 ```
 
-
+From this box plot, we wanted to see if certain weeks would have notable differences in response time. Looking at the results, there does not seem to be much variation. Therefore, the weeks in the year might not have a significant impact on repsonse time.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -241,7 +252,7 @@ gso.fire %>%
   ggtitle("Station vs Response Time")
 ```
 
-
+The box plot above shows that there is a lot of variability in response time depending on which station responded to the call. By looking at these results, we can explore and question why different fire stations have such big contrasts in response time.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -254,7 +265,7 @@ gso.fire %>%
   ggtitle("Nature Code vs Response Time")
 ```
 
-
+For this graph above, we looked at nature code and how it affects response time. Nature code represents the nature of the fire incident, whether it was a fire or someone having a stroke. As shown by the graph, there is a lot of variability in response time depending on the nature of the fire incident.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -267,7 +278,7 @@ gso.fire %>%
   theme_economist()
 ```
 
-
+From this scatter plot, we wanted to see if the number of staff on incident would affect the response time of the fire responders. The outcome of the graph  shows that there is no significant change in response time when having more people on shift. The repsonse time still falls between 100 and 400 seconds, no matter the number of responders.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -280,6 +291,7 @@ gso.fire %>%
   theme_economist() 
 ```
 
+For this scatter plot, we wanted to learn more about the relationship between civilian injuries and response time. From the plot, we learned that most of the time there are none civilian injuries and sometime there is one civilian injury. The response time still appears to fall into the expected range of 100 to 400 seconds, so having small numbers of civilian injuries has little effect on the response time.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -292,7 +304,7 @@ gso.fire %>%
   theme_economist()
 ```
 
-
+From this plot, we wanted to explore the affect civilian fatalities has on response time. As shown by the results, the majority of the time there were no civilian fatalities from the fire incidents in Greensboro, NC. Therefore, the response time is not significantly affected by this variable.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -305,7 +317,7 @@ gso.fire %>%
   theme_economist()
 ```
 
-
+The scatter plot above shows that there is usually no fire service injuries. But sometimes there can be one and as shown by the plot, it does not greatly affect the response time.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -318,7 +330,9 @@ gso.fire %>%
   theme_economist() 
 ```
 
+The plot above shows us that there never has been a fire service fatality in Greensboro, NC from the ten years of data collected. Therefore, this variable does not affect the response time.
 
+Below, the box and violin plots had similar results to the bar graphs presented earlier. Each graph will summarize briefly what have seen before.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -333,7 +347,7 @@ gso.fire %>%
   theme(axis.text.x = element_text(angle = 90), legend.position = "hide")
 ```
 
-
+For this violin and box plot, it can be seen that there is very little difference in response time between the days of the week.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -347,7 +361,7 @@ gso.fire %>%
   ggtitle("Violin & Box Plots of Response Time Densities by Year")
 ```
 
-
+From the plot above there is a slight increase in the average response time after the year 2013 and it continues to stay the same or slightly increase more.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -360,7 +374,7 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Work Shift")
 ```
 
-
+For this graph it can be seen that different work shifts did not affect the response time.
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
@@ -374,7 +388,7 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Fire District")
 ```
 
-
+As shown by the graph, the response time varies depending on which fire district responded to the fire incident.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -387,7 +401,7 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Month")
 ```
 
-
+For this box and violin plot, we learned that the time of month in the year has very little affect on the response time.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -401,7 +415,7 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Alarm Hour")
 ```
 
-
+From this visual, we learned that alarm hour has a slight affect on response time, as shown by the dips in the plot.
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
@@ -414,6 +428,7 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Number of Alarms")
 ```
 
+For the graph above, there would sometimes be a couple alarms set off for a fire incident, but it did not affect the response time whether the alarm was once or twice.
 
 ### Time Series Visualization
 Visualization of fire incidents in Greensboro, NC
@@ -436,7 +451,9 @@ gso.fire.ts %>%
   ggtitle("Time series of daily number of fire incidents")
 ```
 
+Above is a time series plot of the daily number of fire incidents from July 1, 2010 to June 1st 2022. As shown by the plot, there were big spikes around 2013, 2018, and 2021.
 
+Below is the daily time series graphs for the years 2010 to 2022.
 
 ```{r, echo=FALSE}
 gso.fire.ts %>%
@@ -594,6 +611,8 @@ gso.fire.ts %>%
 
 #### Weekly Time Series
 
+Below is the weekly time series graphs for the years 2010 to 2022.
+
 ```{r, echo=FALSE}
 gso.fire.ts.week = gso.fire %>%
   group_by(Year, Week) %>%
@@ -745,6 +764,7 @@ gso.fire.ts.week %>%
 
 #### Monthly Time Series
 
+Below are time series graphs of the monthly number of fire incidents for the years 2010 to 2022.
 
 ```{r, echo=FALSE}
 gso.fire.ts.month = gso.fire %>%
@@ -996,3 +1016,4 @@ cutoff.response_time = gso.fire %>% select(response_time_seconds) %>%
   summarize(c = quantile(response_time_seconds, .75) + 3 * IQR(response_time_seconds)) %>%
   pull(c)
 ```
+
