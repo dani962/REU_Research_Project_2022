@@ -484,7 +484,7 @@ gso.fire.ts %>%
 #Monthly number of fire incidents
 gso.fire.ts.month = gso.fire %>%
   mutate(Monthly = make_date(Year, Month)) %>%
-  group_by(Monthly) %>%
+  group_by(Monthly, Month, Year) %>%
   count()
 
 #time series of monthly number of fire incidents for years 2010-2022
@@ -616,8 +616,17 @@ gso.fire.ts.month %>%
 
 #Weekly number of fire incidents
 gso.fire.ts.week = gso.fire %>%
-  group_by(Year, Week) %>%
+  mutate(Weekly = make_date(Year, Week)) %>%
+  group_by(Weekly, Year, Week) %>%
   count()
+
+#time series of weekly number of fire incidents for 2010-2022
+gso.fire.ts.week %>%
+  ggplot(aes(Weekly, y = n)) +
+  geom_line() +
+  xlab("Week") +
+  ylab("Number of Fire Incidents") +
+  ggtitle("Time series of weekly number of fire incidents for 2010-2022")
 
 #time series of weekly number of fire incidents for 2010
 gso.fire.ts.week %>%
