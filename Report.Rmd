@@ -770,8 +770,18 @@ Below are time series graphs of the monthly number of fire incidents for the yea
 
 ```{r, echo=FALSE}
 gso.fire.ts.month = gso.fire %>%
-  group_by(Year, Month) %>%
+  mutate(Monthly = make_date(Year, Month)) %>%
+  group_by(Monthly) %>%
   count()
+```
+
+```{r}
+gso.fire.ts.month %>%
+  ggplot(aes(x = Monthly, y = n)) +
+  geom_line() +
+  xlab("Month") +
+  ylab("Number of Fire Incidents") +
+  ggtitle("Time series of monthly number of fire incidents for 2010-2022")
 ```
 
 

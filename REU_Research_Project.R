@@ -481,11 +481,20 @@ gso.fire.ts %>%
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2022")
 
-
 #Monthly number of fire incidents
 gso.fire.ts.month = gso.fire %>%
-  group_by(Year, Month) %>%
+  mutate(Monthly = make_date(Year, Month)) %>%
+  group_by(Monthly) %>%
   count()
+
+#time series of monthly number of fire incidents for years 2010-2022
+gso.fire.ts.month %>%
+  ggplot(aes(x = Monthly, y = n)) +
+  geom_line() +
+  xlab("Month") +
+  ylab("Number of Fire Incidents") +
+  ggtitle("Time series of monthly number of fire incidents for 2010-2022")
+
 
 #time series of monthly number of fire incidents for 2010
 gso.fire.ts.month %>%
