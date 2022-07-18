@@ -411,6 +411,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2010-01-01" & AlarmDate2 <= "2010-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2010")
@@ -420,6 +421,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2011-01-01" & AlarmDate2 <= "2011-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2011")
@@ -429,6 +431,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2012-01-01" & AlarmDate2 <= "2012-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2012")
@@ -438,6 +441,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2013-01-01" & AlarmDate2 <= "2013-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2013")
@@ -447,6 +451,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2014-01-01" & AlarmDate2 <= "2014-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2014")
@@ -456,6 +461,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2015-01-01" & AlarmDate2 <= "2015-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2015")
@@ -465,6 +471,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2016-01-01" & AlarmDate2 <= "2016-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2016")
@@ -474,6 +481,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2017-01-01" & AlarmDate2 <= "2017-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2017")
@@ -483,6 +491,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2018-01-01" & AlarmDate2 <= "2018-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2018")
@@ -492,6 +501,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2019-01-01" & AlarmDate2 <= "2019-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2019")
@@ -501,6 +511,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2020-01-01" & AlarmDate2 <= "2020-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2020")
@@ -510,6 +521,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2021-01-01" & AlarmDate2 <= "2021-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2021")
@@ -519,6 +531,7 @@ gso.fire.ts %>%
   filter(AlarmDate2 >= "2022-01-01" & AlarmDate2 <= "2022-12-31") %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
   xlab("Alarm Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents for 2022")
@@ -533,10 +546,11 @@ gso.fire.ts.month = gso.fire %>%
 gso.fire.ts.month %>%
   ggplot(aes(x = Monthly, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m-%y", date_breaks = "6 month") + 
   xlab("Month") +
   ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2010-2022")
-
+  ggtitle("Time series of monthly number of fire incidents for 2010-2022") +
+  theme(axis.text.x = element_text(angle = 90))
 
 #time series of monthly number of fire incidents for 2010
 gso.fire.ts.month %>%
@@ -675,6 +689,7 @@ gso.fire.ts.week %>%
   filter(Year == "2010") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(27,53,1)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2010")
@@ -684,6 +699,7 @@ gso.fire.ts.week %>%
   filter(Year == "2011") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2011")
@@ -693,6 +709,7 @@ gso.fire.ts.week %>%
   filter(Year == "2012") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2012")
@@ -702,6 +719,7 @@ gso.fire.ts.week %>%
   filter(Year == "2013") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2013")
@@ -711,6 +729,7 @@ gso.fire.ts.week %>%
   filter(Year == "2014") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2014")
@@ -720,6 +739,7 @@ gso.fire.ts.week %>%
   filter(Year == "2015") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2015")
@@ -729,6 +749,7 @@ gso.fire.ts.week %>%
   filter(Year == "2016") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2016")
@@ -738,6 +759,7 @@ gso.fire.ts.week %>%
   filter(Year == "2017") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2017")
@@ -747,6 +769,7 @@ gso.fire.ts.week %>%
   filter(Year == "2018") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2018")
@@ -756,6 +779,7 @@ gso.fire.ts.week %>%
   filter(Year == "2019") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2019")
@@ -765,6 +789,7 @@ gso.fire.ts.week %>%
   filter(Year == "2020") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2020")
@@ -774,6 +799,7 @@ gso.fire.ts.week %>%
   filter(Year == "2021") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,53,2)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2021")
@@ -783,6 +809,7 @@ gso.fire.ts.week %>%
   filter(Year == "2022") %>%
   ggplot(aes(x = Week, y = n)) +
   geom_line() +
+  scale_x_continuous(breaks = seq(1,23,1)) +
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2022")
