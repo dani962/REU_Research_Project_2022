@@ -6,7 +6,13 @@ library(dplyr)
 library(ggrepel)
 library(ggthemes)
 library(broom)
+library(glmnet)
 library(MASS)
+library(tidyverse)
+library(Amelia)
+library(mice)
+library(caret)
+
 
 #loading data set
 gso.fire <- read_csv("Greensboro_Fire_Incidents.csv")
@@ -47,7 +53,8 @@ gso.fire = gso.fire %>%
 
 
 #cutoff point for response time
-cutoff.response_time = gso.fire %>% select(response_time_seconds) %>%
+cutoff.response_time = gso.fire %>% 
+  dplyr::select(response_time_seconds) %>%
   filter(!is.na(response_time_seconds)) %>%
   summarize(c = quantile(response_time_seconds, .75) + 3 * IQR(response_time_seconds)) %>%
   pull(c)
@@ -335,12 +342,12 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Number of Alarms")
 
 
+#Modeling of Response Time
+
 #Filtering data
 gso.fire.filtered = gso.fire %>%
   filter(response_time_seconds < cutoff.response_time)
 
-
-#Modeling response time
 lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour , 
                  data = gso.fire.filtered)
 
@@ -350,6 +357,39 @@ summary(lm.res.time)
 #Variable Selection
 lm.res.time.select = stepAIC(lm.res.time)
 summary(lm.res.time.select)
+
+missmap(gso.fire)
+
+p = gso.fire%>%
+  drop_na(response_time_seconds)
+
+x = p[,-64]
+lasso.mod = cv.glmnet(x = as.matrix(x), y = as.matrix(p$response_time_seconds),
+                      family = "gaussian", alpha = 1)
+
+#Random Forrest
+nr <- nrow(gso.fire)
+tr.id <- sample(nr, floor(0.7*nr), replace = FALSE, prob = NULL)
+tr.DF <- gso.fire[tr.id, ]
+ts.DF <- gso.fire[-tr.id, ]
+
+fitControl <- trainControl(method = 'repeatedcv',
+                           number = 10, 
+                           repeats = 3,
+                           search = 'grid')
+
+m.try <- c(floor(sqrt(ncol(tr.DF))), (ncol(tr.DF) - 1), floor(log(ncol(tr.DF))))
+Tune.grid <- expand.grid(.mtry = m.try)
+RF.Mod <- train(response_time_seconds~., 
+                data = tr.DF, 
+                method = 'rf', 
+                metric = 'mse',
+                tuneGrid = Tune.grid,
+                trControl = fitControl,
+                importance = TRUE)
+
+randomForest(response_time_seconds~., data = tr.DF, na.action = na.fail)
+
 
 
 #daily number of fire incidents
@@ -744,3 +784,55 @@ gso.fire.ts.week %>%
   xlab("Week") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of weekly number of fire incidents for 2022")
+
+
+
+#Forecasting for daily number of Fire Incidents
+
+#Time Series Forecasting
+
+#convert gso.fire.ts to official ts object
+gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+                 frequency = 365)
+
+#check for stationarity
+
+#determine the number of differences required for time series x to be made stationary
+#install.packages("forecast")
+library(forecast)
+ndiffs(gso.fire.ts.2) #1
+
+nsdiffs(gso.fire.ts.2) #0
+
+#install.packages("urca")
+library(urca)
+acf(gso.fire.ts.2)
+summary(ur.kpss(gso.fire.ts.2))
+
+#attempt at differencing
+gso.fire.ts.2.diff <- diff(gso.fire.ts.2)
+acf(gso.fire.ts.2.diff)
+
+summary(ur.kpss(gso.fire.ts.2.diff))
+ndiffs(gso.fire.ts.2) #1
+nsdiffs(gso.fire.ts.2) #0
+
+cbind("Fire Incidents" = gso.fire.ts.2,
+      "First differenced" = diff(gso.fire.ts.2)) %>%
+  autoplot(facets=TRUE) +
+  xlab("Date") + ylab("") +
+  ggtitle("Stationarity Transformations of Daily Fire Incidents")
+
+
+#Forecasting for monthly number of Fire Incidents
+
+#convert gso.fire.ts to official ts object
+gso.fire.ts.month.2 <- ts(gso.fire.ts.month$n, start = c(2010, 7), end = c(2022, 6),
+                    frequency = 12)
+
+##Looking at stationarity of crashes_mts4 monthly time series 
+acf(gso.fire.ts.month.2)
+summary(ur.kpss(gso.fire.ts.month.2))
+
+ndiffs(gso.fire.ts.month.2) #1
+nsdiffs(gso.fire.ts.month.2) #0
