@@ -3,17 +3,17 @@ title: "Statistical Analysis of Fire Incidents in the City of Greensboro, NC"
 author: "Danielle Mirzaeian, Nahom Fisseha"
 date: '2022-06-22'
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, echo= FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Abstract
+## Abstract
 
-# Introduction
+## Introduction
 Many calls are made to fire departments all the time. Whether it is a false alarm or not, it is important for first responders to take care of fire incidents as soon as possible. Therefore it is important to look at data about different fire incidents and see how the response time can be improved for all kinds of situations.
 
 There are all kinds of fire incidents, some not even about fires. For example someone could be having a stroke and the local fire department was called to take action on the situation. If the incident is a fire, it could be at all kinds of different properties. Some different properties are small houses, apartment buildings, and highways. The fire could vary in size, like the wildfires in California.
@@ -24,21 +24,29 @@ For more than ten years, the city of Greensboro, NC has been collecting data on 
 
 For this project we will be visualizing the fire incidents in Greensboro, NC. Our research questions are 1) What factors affect the response time to fire incidents? 2) How to improve the response time? 3) How does response time by fire emergency services affect the rate of total loss and civilian injuries? 4)Can we build models to forecast the number of fire incidents in certain areas of Greensboro based on the data from 2010 to 2022? 5) what Dynamic models can we make for forecasting fire incidents?
 
-# Related Literature
-When analyzing data in regards to fire incident reports there are many different factors to keep in mind. The most valuable being the response time from the second the 911 call is picked up to the second the fire department reports to the scene. The ability to identify the relationship between fire service response time and the outcome of a fire is what can make or break a study in this field. In this regards there are many different factors that can be tested and analyzed to have an impact on this main variable.
+## Related Literature
+https://www.researchgate.net/publication/316976331_Modelling_residential_fire_incident_response_times_A_spatial_analytic_approach
 
-# Outro 
+https://www.researchgate.net/publication/226273683_The_Relationships_Between_Fire_Service_Response_Time_and_Fire_Outcomes
+
+https://www.researchgate.net/publication/333158843_Statistical_Analysis_of_Fire_Department_Response_Times_and_Effects_on_Fire_Outcomes_in_the_United_States
+
+https://dl.acm.org/doi/abs/10.1145/3523286.3524560
+
+https://dl.acm.org/doi/10.5555/3091125.3091154
+
+## Outro 
 Although multiple studies have sought to capture the analytics behind fire incidents not many have gone completely in-depth in terms of covering fully what factors can affect response time. In this report we aim to completely cover all given factors that may effect fire service response time and how response time effects the rate of total loss in Greensboro, NC. With this information we then will create a model to forecast the next XXXmonth in regards to reported fire incidents.
 
 
-# Data, Method, and Analysis
+## Data, Method, and Analysis
 
-## Data
+### Data
 For this analysis, we utilized public data from the Greensboro Fire Department. This data set accounts for all reported fire incidents in the city of Greensboro from July 1st of 2010 to June 1st of 2022. 
 
-## Method
+### Method
 
-### Exploratory Data Analysis
+#### Exploratory Data Analysis
 The first step in our research project was exploratory data analysis. During this process we investigated the data looking for patterns and outliers. This was carried out by making various graphical representations of the data.
 
 
@@ -102,7 +110,7 @@ cutoff.response_time = gso.fire %>% select(response_time_seconds) %>%
 ```
 
 
-### Univariate Explorations
+#### Univariate Explorations
 Data Visualizations consisting of one variable
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
@@ -223,7 +231,7 @@ gso.fire %>%
 This visual was used to look further into if there was a higher frequency of calls to fire stations in certain parts of the year. From the results, June and February seem to have the lowest frequency of calls, while January and December have the highest frequency of calls. With this knowledge we can look at how response time varied with those months.
 
 
-### Bivariate Explorations
+#### Bivariate Explorations
 Data Visualizations of a given variable vs response time
 
 
@@ -430,11 +438,11 @@ gso.fire %>%
 
 For the graph above, there would sometimes be a couple alarms set off for a fire incident, but it did not affect the response time whether the alarm was once or twice.
 
-## Time Series Visualization
+### Time Series Visualization
 Visualization of fire incidents in Greensboro, NC
 
 
-### Daily Time series
+#### Daily Time series
 
 ```{r, echo=FALSE}
 gso.fire.ts = gso.fire %>%
@@ -609,7 +617,7 @@ gso.fire.ts %>%
   ggtitle("Time series of daily number of fire incidents for 2022")
 ```
 
-### Weekly Time Series
+#### Weekly Time Series
 
 Below is the weekly time series graphs for the years 2010 to 2022.
 
@@ -772,7 +780,7 @@ gso.fire.ts.week %>%
   ggtitle("Time series of weekly number of fire incidents for 2022")
 ```
 
-### Monthly Time Series
+#### Monthly Time Series
 
 Below are time series graphs of the monthly number of fire incidents for the years 2010 to 2022.
 
@@ -936,7 +944,7 @@ gso.fire.ts.month %>%
 ```
 
 
-# Modeling of Response Time
+## Modeling of Response Time
 
 ```{r, echo=FALSE}
 gso.fire.filtered = gso.fire %>%
@@ -970,12 +978,12 @@ summary(lm.res.time.select)
 
 
 
-# Appendix
+## Appendix
 This section contains the code to reproduce the analysis described in this report.
 
 Below is a list of the libraries that we used throughout the report.
 
-### Loading necessary packages
+#### Loading necessary packages
 
 ```{r, message=FALSE, warning=FALSE, eval=FALSE}
 library(readr)
@@ -988,13 +996,13 @@ library(ggthemes)
 library(broom)
 ```
 
-### Data Preprocessing
+#### Data Preprocessing
 ```{r, message=FALSE, warning=FALSE, eval=FALSE}
 gso.fire <- read_csv("Greensboro_Fire_Incidents.csv")
 ```
 
 
-### Filtering for incidents prior to June 1st 2022
+#### Filtering for incidents prior to June 1st 2022
 ```{r, eval=FALSE}
 gso.fire = 
   gso.fire %>%
@@ -1002,34 +1010,34 @@ gso.fire =
   filter(AlarmDate2 < '2022-06-01')
 ```
 
-### Filter for property type 1-2 family dwellings
+#### Filter for property type 1-2 family dwellings
 ```{r, eval=FALSE}
 gso.fire = gso.fire %>%
   filter(PropertyUse == '419 - 1 or 2 family dwelling')
 ```
 
-### Convert to call process time to seconds and add to gso.fire
+#### Convert to call process time to seconds and add to gso.fire
 ```{r, eval=FALSE}
 gso.fire = gso.fire %>%
   mutate(call_process_period = lubridate::hms(CallProcessingTime), 
          call_process_seconds = period_to_seconds(call_process_period))
 ```
 
-### Convert response time to seconds and add to gso.fire
+#### Convert response time to seconds and add to gso.fire
 ```{r, message=FALSE, warning=FALSE, eval=FALSE}
 gso.fire = gso.fire %>%
   mutate(response_time_period = lubridate::hms(ResponseTime),
          response_time_seconds = period_to_seconds(response_time_period))
 ```
 
-### Convert total response time to seconds and add to gso.fire
+#### Convert total response time to seconds and add to gso.fire
 ```{r, message=FALSE, warning=FALSE, eval=FALSE}
 gso.fire = gso.fire %>%
   mutate(total_response_period = lubridate::hms(TotalResponseTime),
          total_response_seconds = period_to_seconds(total_response_period))
 ```
 
-### Cutoff point for response time
+#### Cutoff point for response time
 ```{r, eval=FALSE}
 cutoff.response_time = gso.fire %>% select(response_time_seconds) %>%
   filter(!is.na(response_time_seconds)) %>%
