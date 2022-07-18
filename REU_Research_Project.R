@@ -400,9 +400,11 @@ gso.fire.ts = gso.fire %>%
 gso.fire.ts %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m-%Y", date_breaks = "6 month") + 
   xlab("Year") +
   ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents")
+  ggtitle("Time series of daily number of fire incidents") +
+  theme(axis.text.x = element_text(angle = 90))
 
 #time series of daily number of fire incidents for 2010
 gso.fire.ts %>%
