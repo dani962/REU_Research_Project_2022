@@ -12,6 +12,8 @@ library(tidyverse)
 library(Amelia)
 library(mice)
 library(caret)
+library(forecast)
+library(urca)
 
 
 #loading data set
@@ -350,9 +352,6 @@ gso.fire.filtered = gso.fire %>%
 
 lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour , 
                  data = gso.fire.filtered)
-
-#Results from lm.res.time
-summary(lm.res.time)
 
 #Variable Selection
 lm.res.time.select = stepAIC(lm.res.time)
@@ -820,29 +819,28 @@ gso.fire.ts.week %>%
 
 #Time Series Forecasting
 
+
 #convert gso.fire.ts to official ts object
 gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                  frequency = 365)
 
+
+
 #check for stationarity
 
 #determine the number of differences required for time series x to be made stationary
-#install.packages("forecast")
-library(forecast)
 ndiffs(gso.fire.ts.2) #1
 
 nsdiffs(gso.fire.ts.2) #0
 
-#install.packages("urca")
-library(urca)
 acf(gso.fire.ts.2)
 summary(ur.kpss(gso.fire.ts.2))
 
 #attempt at differencing
-gso.fire.ts.2.diff <- diff(gso.fire.ts.2)
-acf(gso.fire.ts.2.diff)
+gso.fire.ts.2.dif = diff(gso.fire.ts.2)
+acf(gso.fire.ts.2.dif)
 
-summary(ur.kpss(gso.fire.ts.2.diff))
+summary(ur.kpss(gso.fire.ts.2.dif))
 ndiffs(gso.fire.ts.2) #1
 nsdiffs(gso.fire.ts.2) #0
 
@@ -859,9 +857,65 @@ cbind("Fire Incidents" = gso.fire.ts.2,
 gso.fire.ts.month.2 <- ts(gso.fire.ts.month$n, start = c(2010, 7), end = c(2022, 6),
                     frequency = 12)
 
-##Looking at stationarity of crashes_mts4 monthly time series 
+
+
+#looking at stationarity
 acf(gso.fire.ts.month.2)
 summary(ur.kpss(gso.fire.ts.month.2))
 
 ndiffs(gso.fire.ts.month.2) #1
 nsdiffs(gso.fire.ts.month.2) #0
+
+#attempt at differencing
+gso.fire.ts.month.2.dif = diff(gso.fire.ts.month.2)
+
+#looking at stationarity for difference
+acf(gso.fire.ts.month.2.dif)
+
+summary(ur.kpss(gso.fire.ts.month.2.dif))
+ndiffs(gso.fire.ts.month.2.dif) #0
+nsdiffs(gso.fire.ts.month.2.dif) #0
+
+cbind("Fire Incidents" = gso.fire.ts.month.2,
+      "First differenced" = diff(gso.fire.ts.month.2)) %>%
+  autoplot(facets=TRUE) +
+  xlab("Date") + ylab("") +
+  ggtitle("Stationarity Transformation of Monthly Fire Incidents")
+
+#now forecasting daily number of fire incidents
+
+y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats = tbats(y.dif)
+daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+
+
+#point forecast values
+dif.Yhat = daily.dif.tbats.fc$mean
+dif.Yhat.upper <- daily.dif.tbats.fc$upper
+dif.Yhat.lower <- daily.dif.tbats.fc$lower
+
+Yhat <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
+Yhat <- ts(Yhat, start = c(2022, 152), frequency=365)
+Yhat_upper <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
+Yhat_upper <- ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
+Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
+Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+
+#TBAT forecasting
+autoplot(gso.fire.ts.2) + 
+  autolayer(Yhat, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") + ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+
+
+#h=ifelse(frequency(daily.arima) > 1, 2 * frequency(daily.arima), 10)
+
+#ARIMA forecasting
+daily.arima <- auto.arima(gso.fire.ts.2)
+#what is h in forecasting?
+daily.arima.fc <- forecast(daily.arima, h=214)
+autoplot(daily.arima.fc) + 
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") + ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
