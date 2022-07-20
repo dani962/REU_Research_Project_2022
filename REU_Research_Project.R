@@ -14,6 +14,7 @@ library(mice)
 library(caret)
 library(forecast)
 library(urca)
+library(randomForest)
 
 
 #loading data set
@@ -348,7 +349,8 @@ gso.fire %>%
 
 #Filtering data
 gso.fire.filtered = gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time)
+  filter(response_time_seconds < cutoff.response_time) %>% 
+  dplyr::select(response_time_seconds, everything())
 
 lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour , 
                  data = gso.fire.filtered)
@@ -357,39 +359,38 @@ lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + D
 lm.res.time.select = stepAIC(lm.res.time)
 summary(lm.res.time.select)
 
-missmap(gso.fire)
 
-p = gso.fire%>%
-  drop_na(response_time_seconds)
+p = gso.fire.filtered[,-64]
 
-x = p[,-64]
-lasso.mod = cv.glmnet(x = as.matrix(x), y = as.matrix(p$response_time_seconds),
-                      family = "gaussian", alpha = 1)
+las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
+plot(las.Mod)
+#lasso.mod = cv.glmnet(x = as.matrix(x), y = as.matrix(p$response_time_seconds),
+#                     family = "gaussian", alpha = 1)
 
 #Random Forrest
+RF.Mod <- randomForest(response_time_seconds~response_time_period + total_response_period +
+                         total_response_seconds + AlarmDate2 + call_process_period +
+                         call_process_seconds + TotalApparatus + CivilianInjuries +
+                         CivilianFatalities + TotalStaffOnIncident + ContentValue +
+                         FireServiceFatalities + FireServiceInjuries + ContentLoss +
+                         TotalLosses + PropertyValue + PropertyUse + PropertyLoss +
+                         shift + FireDemandZone + NumberOfAlarms,
+                       data = gso.fire.filtered, importance = TRUE, ntree = 10, na.action=na.exclude)
+
+
 nr <- nrow(gso.fire)
 tr.id <- sample(nr, floor(0.7*nr), replace = FALSE, prob = NULL)
 tr.DF <- gso.fire[tr.id, ]
 ts.DF <- gso.fire[-tr.id, ]
 
-fitControl <- trainControl(method = 'repeatedcv',
-                           number = 10, 
-                           repeats = 3,
-                           search = 'grid')
+DD <- c("response_time_period","total_response_period","total_response_seconds","AlarmDate2","call_process_period",
+        "call_process_seconds","IncidentCategory","NFIRS_IncidentType","NFIRS_IncidentTypeDescription","AreaOfFireOrigin",
+        "HeatSource","NFIRS_IncidentGroup","ConditionsOnArrival","ExtinguishMethod","OccupancyStatus","TotalApparatus",
+        "FlameSpreadDesc","ExtinguishedByDesc","CivilianInjuries","CivilianFatalities","TotalStaffOnIncident","ContentValue",
+        "FireServiceFatalities","FireServiceInjuries","ContentLoss","TotalLosses","PropertyValue","NatureCode","PropertyUse",
+        "PropertyLoss","shift","FireDemandZone","NumberOfAlarms")
 
-m.try <- c(floor(sqrt(ncol(tr.DF))), (ncol(tr.DF) - 1), floor(log(ncol(tr.DF))))
-Tune.grid <- expand.grid(.mtry = m.try)
-RF.Mod <- train(response_time_seconds~., 
-                data = tr.DF, 
-                method = 'rf', 
-                metric = 'mse',
-                tuneGrid = Tune.grid,
-                trControl = fitControl,
-                importance = TRUE)
-
-randomForest(response_time_seconds~., data = tr.DF, na.action = na.fail)
-
-
+#Time Series
 
 #daily number of fire incidents
 gso.fire.ts = gso.fire %>%
@@ -669,161 +670,14 @@ gso.fire.ts.month %>%
   ggtitle("Time series of monthly number of fire incidents for 2022")
 
 
-#Weekly number of fire incidents
-gso.fire.ts.week = gso.fire %>%
-  mutate(Weekly = make_date(Year, Week)) %>%
-  group_by(Weekly, Year, Week) %>%
-  count()
-
-#time series of weekly number of fire incidents for 2010-2022
-gso.fire.ts.week %>%
-  ggplot(aes(Weekly, y = n)) +
-  geom_line() +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2010-2022")
-
-#time series of weekly number of fire incidents for 2010
-gso.fire.ts.week %>%
-  filter(Year == "2010") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(27,53,1)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2010")
-
-#time series of weekly number of fire incidents for 2011
-gso.fire.ts.week %>%
-  filter(Year == "2011") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2011")
-
-#time series of weekly number of fire incidents for 2012
-gso.fire.ts.week %>%
-  filter(Year == "2012") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2012")
-
-#time series of weekly number of fire incidents for 2013
-gso.fire.ts.week %>%
-  filter(Year == "2013") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2013")
-
-#time series of weekly number of fire incidents for 2014
-gso.fire.ts.week %>%
-  filter(Year == "2014") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2014")
-
-#time series of weekly number of fire incidents for 2015
-gso.fire.ts.week %>%
-  filter(Year == "2015") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2015")
-
-#time series of weekly number of fire incidents for 2016
-gso.fire.ts.week %>%
-  filter(Year == "2016") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2016")
-
-#time series of weekly number of fire incidents for 2017
-gso.fire.ts.week %>%
-  filter(Year == "2017") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2017")
-
-#time series of weekly number of fire incidents for 2018
-gso.fire.ts.week %>%
-  filter(Year == "2018") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2018")
-
-#time series of weekly number of fire incidents for 2019
-gso.fire.ts.week %>%
-  filter(Year == "2019") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2019")
-
-#time series of weekly number of fire incidents for 2020
-gso.fire.ts.week %>%
-  filter(Year == "2020") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2020")
-
-#time series of weekly number of fire incidents for 2021
-gso.fire.ts.week %>%
-  filter(Year == "2021") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,53,2)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2021")
-
-#time series of weekly number of fire incidents for 2022
-gso.fire.ts.week %>%
-  filter(Year == "2022") %>%
-  ggplot(aes(x = Week, y = n)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(1,23,1)) +
-  xlab("Week") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of weekly number of fire incidents for 2022")
-
-
-
-#Forecasting for daily number of Fire Incidents
 
 #Time Series Forecasting
 
+#forecasting for daily number of forecasting
 
 #convert gso.fire.ts to official ts object
 gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                  frequency = 365)
-
 
 
 #check for stationarity
@@ -850,14 +704,11 @@ cbind("Fire Incidents" = gso.fire.ts.2,
   xlab("Date") + ylab("") +
   ggtitle("Stationarity Transformations of Daily Fire Incidents")
 
-
 #Forecasting for monthly number of Fire Incidents
 
 #convert gso.fire.ts to official ts object
 gso.fire.ts.month.2 <- ts(gso.fire.ts.month$n, start = c(2010, 7), end = c(2022, 6),
                     frequency = 12)
-
-
 
 #looking at stationarity
 acf(gso.fire.ts.month.2)
@@ -881,6 +732,7 @@ cbind("Fire Incidents" = gso.fire.ts.month.2,
   autoplot(facets=TRUE) +
   xlab("Date") + ylab("") +
   ggtitle("Stationarity Transformation of Monthly Fire Incidents")
+
 
 #now forecasting daily number of fire incidents
 
