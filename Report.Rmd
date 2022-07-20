@@ -984,6 +984,14 @@ summary(lm.res.time.select)
 
 ```
 
+## Random Forest
+(Insert Random Forest here)
+
+# Conclusion
+(Insert Conclusion here)
+
+# Discussion
+(Insert Discussion here)
 
 # Appendix
 This section contains the code to reproduce the analysis described in this report.
