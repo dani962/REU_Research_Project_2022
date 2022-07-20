@@ -948,6 +948,8 @@ gso.fire.ts.month %>%
   ggtitle("Time series of monthly number of fire incidents for 2022")
 ```
 
+## Time Series Forecasting 
+(Insert time series forecasting)
 
 # Modeling of Response Time
 
@@ -956,6 +958,7 @@ In this section the results of the predictive modeling of fire incidents is disp
 There was one type of modeling done, and that was logistic regression. With this, we can evaluate the main factors that affect response time for fire incidents.
 
 ## Logistic Regression
+In order to successfully depict the affect of each given variable in relation to response time the first model we sought was a Logistic Regression model. With this approach we are able to identify which surrounding variables from our original data set directly impact our independent variable which in this case is fire service response time. First we filtered our cutoff point in regards to response time and ran a variable selection method to finalize the surrounding dependent variables being used in the Logistic Regression model Once we completed the variable selection process we were able to identify that the variables holding significance in correlation to response time were TotalStaffOnIncident, FireDistrict, DayOfWeek, shift, Month, and AlarmHour. When originally running this test a couple of our dependent variables had processed as one big character component not giving the model its true ability to compare all given components within that given variable. To solve this we mutated these variables as factors in order to unravel the different contents within each variables allowing the model to accurately compare each given variable to fire service response time. In return we were able to mathematically see the significance of each variable and its impact on response time as a whole.
 
 ```{r, echo=FALSE}
 gso.fire.filtered = gso.fire %>%
