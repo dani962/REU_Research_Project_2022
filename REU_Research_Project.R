@@ -344,52 +344,6 @@ gso.fire %>%
   ylab("Response Time (Seconds)") +
   ggtitle("Violin and Box Plot of Response Time Densities by Number of Alarms")
 
-
-#Modeling of Response Time
-
-#Filtering data
-gso.fire.filtered = gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>% 
-  dplyr::select(response_time_seconds, everything())
-
-lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour , 
-                 data = gso.fire.filtered)
-
-#Variable Selection
-lm.res.time.select = stepAIC(lm.res.time)
-summary(lm.res.time.select)
-
-
-p = gso.fire.filtered[,-64]
-
-las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
-plot(las.Mod)
-#lasso.mod = cv.glmnet(x = as.matrix(x), y = as.matrix(p$response_time_seconds),
-#                     family = "gaussian", alpha = 1)
-
-#Random Forrest
-RF.Mod <- randomForest(response_time_seconds~response_time_period + total_response_period +
-                         total_response_seconds + AlarmDate2 + call_process_period +
-                         call_process_seconds + TotalApparatus + CivilianInjuries +
-                         CivilianFatalities + TotalStaffOnIncident + ContentValue +
-                         FireServiceFatalities + FireServiceInjuries + ContentLoss +
-                         TotalLosses + PropertyValue + PropertyUse + PropertyLoss +
-                         shift + FireDemandZone + NumberOfAlarms,
-                       data = gso.fire.filtered, importance = TRUE, ntree = 10, na.action=na.exclude)
-
-
-nr <- nrow(gso.fire)
-tr.id <- sample(nr, floor(0.7*nr), replace = FALSE, prob = NULL)
-tr.DF <- gso.fire[tr.id, ]
-ts.DF <- gso.fire[-tr.id, ]
-
-DD <- c("response_time_period","total_response_period","total_response_seconds","AlarmDate2","call_process_period",
-        "call_process_seconds","IncidentCategory","NFIRS_IncidentType","NFIRS_IncidentTypeDescription","AreaOfFireOrigin",
-        "HeatSource","NFIRS_IncidentGroup","ConditionsOnArrival","ExtinguishMethod","OccupancyStatus","TotalApparatus",
-        "FlameSpreadDesc","ExtinguishedByDesc","CivilianInjuries","CivilianFatalities","TotalStaffOnIncident","ContentValue",
-        "FireServiceFatalities","FireServiceInjuries","ContentLoss","TotalLosses","PropertyValue","NatureCode","PropertyUse",
-        "PropertyLoss","shift","FireDemandZone","NumberOfAlarms")
-
 #Time Series
 
 #daily number of fire incidents
@@ -407,8 +361,7 @@ gso.fire.ts %>%
   theme(axis.text.x = element_text(angle = 90))
 
 incidents_annual = gso.fire.ts %>%
-  separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day")) #%>%
-  #select(-Month)
+  separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day"))
 
 incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
 colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
@@ -422,137 +375,6 @@ incidents_annual %>%
   theme(axis.text.x = element_text(angle = 90)) +
   facet_wrap(~Year, scales = "free_x")
 
-?ggplot
-
-#time series of daily number of fire incidents for 2010
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2010-01-01" & AlarmDate2 <= "2010-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2010")
-
-#time series of daily number of fire incidents for 2011
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2011-01-01" & AlarmDate2 <= "2011-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2011")
-
-#time series of daily number of fire incidents for 2012
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2012-01-01" & AlarmDate2 <= "2012-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2012")
-
-#time series of daily number of fire incidents for 2013
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2013-01-01" & AlarmDate2 <= "2013-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2013")
-
-#time series of daily number of fire incidents for 2014
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2014-01-01" & AlarmDate2 <= "2014-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2014")
-
-#time series of daily number of fire incidents for 2015
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2015-01-01" & AlarmDate2 <= "2015-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2015")
-
-#time series of daily number of fire incidents for 2016
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2016-01-01" & AlarmDate2 <= "2016-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2016")
-
-#time series of daily number of fire incidents for 2017
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2017-01-01" & AlarmDate2 <= "2017-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2017")
-
-#time series of daily number of fire incidents for 2018
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2018-01-01" & AlarmDate2 <= "2018-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2018")
-
-#time series of daily number of fire incidents for 2019
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2019-01-01" & AlarmDate2 <= "2019-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2019")
-
-#time series of daily number of fire incidents for 2020
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2020-01-01" & AlarmDate2 <= "2020-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2020")
-
-#time series of daily number of fire incidents for 2021
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2021-01-01" & AlarmDate2 <= "2021-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2021")
-
-#time series of daily number of fire incidents for 2022
-gso.fire.ts %>%
-  filter(AlarmDate2 >= "2022-01-01" & AlarmDate2 <= "2022-12-31") %>%
-  ggplot(aes(x = AlarmDate2, y = n)) +
-  geom_line() +
-  scale_x_date(date_labels = "%m", date_breaks = "1 month") + 
-  xlab("Alarm Date") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents for 2022")
 
 #Monthly number of fire incidents
 gso.fire.ts.month = gso.fire %>%
@@ -569,124 +391,6 @@ gso.fire.ts.month %>%
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of monthly number of fire incidents for 2010-2022") +
   theme(axis.text.x = element_text(angle = 90))
-
-#time series of monthly number of fire incidents for 2010
-gso.fire.ts.month %>%
-  filter(Year == "2010") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2010")
-
-#time series of monthly number of fire incidents for 2011
-gso.fire.ts.month %>%
-  filter(Year == "2011") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2011")
-
-#time series of monthly number of fire incidents for 2012
-gso.fire.ts.month %>%
-  filter(Year == "2012") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2012")
-
-#time series of monthly number of fire incidents for 2013
-gso.fire.ts.month %>%
-  filter(Year == "2013") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2013")
-
-#time series of monthly number of fire incidents for 2014
-gso.fire.ts.month %>%
-  filter(Year == "2014") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2014")
-
-#time series of monthly number of fire incidents for 2015
-gso.fire.ts.month %>%
-  filter(Year == "2015") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2015")
-
-#time series of monthly number of fire incidents for 2016
-gso.fire.ts.month %>%
-  filter(Year == "2016") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2016")
-
-#time series of monthly number of fire incidents for 2017
-gso.fire.ts.month %>%
-  filter(Year == "2017") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2017")
-
-#time series of monthly number of fire incidents for 2018
-gso.fire.ts.month %>%
-  filter(Year == "2018") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2018")
-
-#time series of monthly number of fire incidents for 2019
-gso.fire.ts.month %>%
-  filter(Year == "2019") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2019")
-
-#time series of monthly number of fire incidents for 2020
-gso.fire.ts.month %>%
-  filter(Year == "2020") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2020")
-
-#time series of monthly number of fire incidents for 2021
-gso.fire.ts.month %>%
-  filter(Year == "2021") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2021")
-
-#time series of monthly number of fire incidents for 2022
-gso.fire.ts.month %>%
-  filter(Year == "2022") %>%
-  ggplot(aes(x = Month, y = n, group = 1)) +
-  geom_line() +
-  xlab("Month") +
-  ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2022")
-
 
 
 #Time Series Forecasting
@@ -772,12 +476,11 @@ Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
 
 #TBAT forecasting
-autoplot(gso.fire.ts.2) + 
+autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
   ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
   xlab("Date") + ylab("Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
-
 
 #h=ifelse(frequency(daily.arima) > 1, 2 * frequency(daily.arima), 10)
 
@@ -789,3 +492,40 @@ autoplot(daily.arima.fc) +
   ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
   xlab("Date") + ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
+
+
+#Modeling of Response Time
+
+#Filtering data
+gso.fire.filtered = gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>% 
+  dplyr::select(response_time_seconds, everything())
+
+p = gso.fire.filtered[,-64]
+
+#No variable selection
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                   shift + Month + AlarmHour, data = gso.fire.filtered)
+
+#Variable Selection
+lm.res.time.select = stepAIC(lm.res.time)
+summary(lm.res.time.select)
+
+#Lasso variable selection
+las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
+plot(las.Mod)
+#lasso.mod = cv.glmnet(x = as.matrix(x), y = as.matrix(p$response_time_seconds),
+#                     family = "gaussian", alpha = 1)
+
+#Random Forrest
+RF.Mod <- randomForest(response_time_seconds~response_time_period + total_response_period +
+                         total_response_seconds + AlarmDate2 + call_process_period +
+                         call_process_seconds + TotalApparatus + CivilianInjuries +
+                         CivilianFatalities + TotalStaffOnIncident + ContentValue +
+                         FireServiceFatalities + FireServiceInjuries + ContentLoss +
+                         TotalLosses + PropertyValue + PropertyUse + PropertyLoss +
+                         shift + FireDemandZone + NumberOfAlarms,
+                       data = gso.fire.filtered, importance = TRUE, ntree = 10, na.action=na.exclude)
+
+plot(RF.Mod, main = "Random Forest (Error rate vs. Number of trees")
+varImpPlot(RF.Mod) # Variables of importance for the random forest model
