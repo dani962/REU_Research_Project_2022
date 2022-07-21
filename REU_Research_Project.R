@@ -475,6 +475,9 @@ Yhat_upper <- ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=36
 Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
 
+fire.ts <- ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
+              frequency = 360) # A 360 day trim to see forecast better
+
 #TBAT forecasting
 autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
@@ -501,11 +504,19 @@ gso.fire.filtered = gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>% 
   dplyr::select(response_time_seconds, everything())
 
+gso.fire.filtered = gso.fire.filtered %>%
+  mutate(AlarmTime = case_when(AlarmHour >= 0 & AlarmHour < 6 ~ "0-5", 
+                               AlarmHour >= 6 & AlarmHour < 12 ~ "6-11",
+                               AlarmHour >= 12 & AlarmHour < 18 ~ "12-17",
+                               TRUE ~ "18-23"))
+
 p = gso.fire.filtered[,-64]
 
 #No variable selection
 lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + 
-                   shift + Month + AlarmHour, data = gso.fire.filtered)
+                   shift + Month + AlarmTime + NatureCode, data = gso.fire.filtered)
+summary(lm.res.time)
+round(coef(lm.res.time), 4)
 
 #Variable Selection
 lm.res.time.select = stepAIC(lm.res.time)
@@ -518,14 +529,27 @@ plot(las.Mod)
 #                     family = "gaussian", alpha = 1)
 
 #Random Forrest
-RF.Mod <- randomForest(response_time_seconds~response_time_period + total_response_period +
-                         total_response_seconds + AlarmDate2 + call_process_period +
-                         call_process_seconds + TotalApparatus + CivilianInjuries +
-                         CivilianFatalities + TotalStaffOnIncident + ContentValue +
-                         FireServiceFatalities + FireServiceInjuries + ContentLoss +
-                         TotalLosses + PropertyValue + PropertyUse + PropertyLoss +
-                         shift + FireDemandZone + NumberOfAlarms,
+RF.Mod <- randomForest(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                         shift + Month + AlarmTime + NatureCode,
                        data = gso.fire.filtered, importance = TRUE, ntree = 10, na.action=na.exclude)
 
 plot(RF.Mod, main = "Random Forest (Error rate vs. Number of trees")
 varImpPlot(RF.Mod) # Variables of importance for the random forest model
+
+install.packages("ranger")
+library(ranger)
+?ranger
+gso.fire.filtered.rf = gso.fire.filtered %>%
+  dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
+           shift , Month , AlarmTime , NatureCode)
+RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                         shift + Month + AlarmTime + NatureCode,
+                       data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
+  geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
+  ylab("Variable Importance")+
+  xlab("")+
+  ggtitle("Information Value Summary")
+barplot(sort(RF.Mod.Ranger$variable.importance))
+variable = names(RF.Mod.Ranger$variable.importance)
+rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
