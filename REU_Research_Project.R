@@ -217,10 +217,10 @@ gso.fire %>%
 #Scatter plot of Total Staff on Incident vs Response Time
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = response_time_seconds, y = TotalStaffOnIncident)) +
+  ggplot(aes(x = TotalStaffOnIncident, y = response_time_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  ylab("Total Staff On Incident") +
-  xlab("Response Time (Seconds)") +
+  xlab("Total Staff On Incident") +
+  ylab("Response Time (Seconds)") +
   ggtitle("Total Staff on Incident vs Response Time") +
   theme_economist()
 
@@ -405,6 +405,24 @@ gso.fire.ts %>%
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of daily number of fire incidents") +
   theme(axis.text.x = element_text(angle = 90))
+
+incidents_annual = gso.fire.ts %>%
+  separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day")) #%>%
+  #select(-Month)
+
+incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
+colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
+
+incidents_annual %>%
+  ggplot(aes(x = AlarmDate2, y = n)) + 
+  ggtitle("Time Series Plots for Frequency of Daily Fire Incidents Organized by Year") + 
+  geom_line() + 
+  scale_x_date(date_labels = "%m-%Y", date_breaks = "1 month") + 
+  xlab("Date") + ylab("Count") + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  facet_wrap(~Year, scales = "free_x")
+
+?ggplot
 
 #time series of daily number of fire incidents for 2010
 gso.fire.ts %>%
@@ -673,7 +691,7 @@ gso.fire.ts.month %>%
 
 #Time Series Forecasting
 
-#forecasting for daily number of forecasting
+#forecasting for daily number of fire incidents
 
 #convert gso.fire.ts to official ts object
 gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
