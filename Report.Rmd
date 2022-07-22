@@ -73,6 +73,7 @@ library(caret)
 library(forecast)
 library(urca)
 library(randomForest)
+library(ranger)
 ```
 
 
@@ -454,8 +455,7 @@ gso.fire %>%
 For the graph above, there would sometimes be a couple alarms set off for a fire incident, but it did not affect the response time whether the alarm was once or twice.
 
 ### Time Series Visualization
-Visualization of fire incidents in Greensboro, NC
-
+This section contains the visualization of all the data of the fire incidents in Greensboro, NC from July 1, 2010 to May 31, 2022.
 
 #### Daily Time series
 
@@ -476,9 +476,9 @@ gso.fire.ts %>%
 
 Above is a time series plot of the daily number of fire incidents from July 1, 2010 to June 1st 2022. As shown by the plot, there were big spikes around 2014, 2018, and 2021.
 
-Below is the daily time series graphs for the years 2010 to 2022.
+To take a deeper look into the time series below is the daily time series graphs for the years 2010 to 2022.
 
-```{r fig.width = 20, fig.height = 20, echo=FALSE}
+```{r fig.width = 18, fig.height = 18, echo=FALSE}
 incidents_annual = gso.fire.ts %>%
   separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day")) #%>%
   #select(-Month)
@@ -488,12 +488,16 @@ colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
 
 incidents_annual %>%
   ggplot(aes(x = AlarmDate2, y = n)) + 
-  ggtitle("Time Series Plots for Frequency of Daily Fire Incidents Organized by Year") + 
+  ggtitle("Time Series Plots for Frequency of Daily Fire Incidents From 2010 to 2022") + 
   geom_line() + 
   scale_x_date(date_labels = "%m-%Y", date_breaks = "1 month") + 
   xlab("Date") + ylab("Count") + 
-  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(angle = 90, size = 14)) +
+  theme(axis.text.y = element_text(size = 14)) +
+  theme(plot.title = element_text(size=22)) +
+  theme(axis.title=element_text(size=18)) +
   facet_wrap(~Year, scales = "free_x")
+
 ```
 
 Above is the time series of the daily fire incidents broken into plots by year. From these graphs we have a clearer view of peaks for each year. So from the results, we can see that there were major peeks around April 2011, March 2014, October 2018, and February 2021.
@@ -510,9 +514,11 @@ gso.fire.ts.month = gso.fire %>%
 gso.fire.ts.month %>%
   ggplot(aes(x = Monthly, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m-%y", date_breaks = "6 month") + 
   xlab("Month") +
   ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2010-2022")
+  ggtitle("Time series of monthly number of fire incidents for 2010-2022") +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 Above is a time series graph depicting the number of monthly fire incidents from July 1, 2010 to May 31 2022. The graph shows an upward trend but with drastic drops occurring at dates like November of 2019 and November 2021.
@@ -520,7 +526,7 @@ Above is a time series graph depicting the number of monthly fire incidents from
 ## Results
 ### Time Series Forecasting
 
-#### Forecasting for daily number of forecasting
+#### Daily number of fire incidents from 2010 to 2022
 
 In order to forecast the data we had to convert it into time series objects with the ts function in R studio.
 ```{r}
@@ -529,14 +535,24 @@ gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
 ```
 
 
-Before forecasting we checked the data for stationarity.
-```{r}
+Before forecasting we checked the data for stationarity. Meaning that we are checking that the time series has a constant mean and variance over time.
+```{r, echo=FALSE}
 acf(gso.fire.ts.2)
 ```
 
-Then we did our first attempt at differencing the data.
+To check if the data needs any first difference calculations then we used the ndiffs function. Also to check if there needs to be any seasonal difference calculations then we used the nsdiffs function.
 ```{r}
+#determine the number of differences required for time series to be made stationary
+ndiffs(gso.fire.ts.2) #1
+nsdiffs(gso.fire.ts.2) #0
+```
+
+Using the acf function we check that the data is stationary after we had done the first difference for the data.
+
+```{r}
+#attempt at differencing
 gso.fire.ts.2.dif = diff(gso.fire.ts.2)
+#checking stationarity of first difference
 acf(gso.fire.ts.2.dif)
 ```
 
@@ -548,7 +564,9 @@ cbind("Fire Incidents" = gso.fire.ts.2,
   ggtitle("Stationarity Transformations of Daily Fire Incidents")
 ```
 
-After check for stationarity we could begin forecasting.
+The plot above shows the daily time series graph before and after the first difference was calculated.
+
+After checking for stationarity we could begin forecasting.
 
 ```{r, echo=FALSE}
 y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
@@ -578,34 +596,53 @@ autoplot(fire.ts) +
   xlab("Date") + ylab("Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
 
-#h=ifelse(frequency(daily.arima) > 1, 2 * frequency(daily.arima), 10)
+```
 
+We used the Exponential smoothing state space model with Box-Cox transformation, ARMA errors, Trend and Seasonal components (TBATS model) because it is a popular model that tends to perform well at forecasting time series.
+
+For the plot above, we used the whole data set, from July 1, 2010 to May 31, 2022. We planned to forecast the fire incidents from June 1, 2010 to December 31, 2022. From the plot we can see that the TBATS was doing okay, it seemed to predict a slow big dip that would eventually start going up again before 2022 ended. The dip though seems to go below the average at one point.
+
+
+```{r, echo=FALSE}
 #ARIMA forecasting
 daily.arima <- auto.arima(gso.fire.ts.2)
-#what is h in forecasting?
 daily.arima.fc <- forecast(daily.arima, h=214)
-autoplot(daily.arima.fc) + 
+autoplot(daily.arima.fc) +
   ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
-  xlab("Date") + ylab("Fire Incidents") + 
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
 ```
 
+We also chose the Autoregressive Integrated Moving Average (ARIMA) model because it has been known to perform competently. Compared to the TBATS model, the ARIMA automatically calculates the differences, so those don't have to be done manually.
 
-#### Forecasting for monthly number of Fire Incidents
+For the plot above, there was a slight increase briefly and then after that the forecast created a horizontal line. The horizontal line appears to be close to the average line of the data.
 
-We again converted the data into a time series object inorder to use the functions for forecasting the time series data.
+
+#### Monthly number of fire incidents from 2010 to 2022
+
+We again converted the data into a time series object in order to use the functions for forecasting the time series data.
 ```{r}
 gso.fire.ts.month.2 <- ts(gso.fire.ts.month$n, start = c(2010, 7), end = c(2022, 6),
                     frequency = 12)
 ```
 
 Then we checked the monthly data for stationarity.
+
 ```{r}
+ndiffs(gso.fire.ts.2) #1
+nsdiffs(gso.fire.ts.2) #0
+```
+
+```{r, echo=FALSE}
 acf(gso.fire.ts.month.2)
 ```
 
-After that we did an attempt at differencing.
-```{r}
+So, our data needs one first difference and that is done with the diff function. After that, we used the acf function to make sure that the difference transformation made our data stationary.
+
+```{r, echo=FALSE}
+#attempt at differencing
 gso.fire.ts.month.2.dif = diff(gso.fire.ts.month.2)
 acf(gso.fire.ts.month.2.dif)
 ```
@@ -618,6 +655,9 @@ cbind("Fire Incidents" = gso.fire.ts.month.2,
   ggtitle("Stationarity Transformation of Monthly Fire Incidents")
 ```
 
+The plot above shows the monthly time series graph before and after the first difference was calculated.
+
+Now that the monthly data is stationary we can being forecasting.
 
 ## Modeling of Response Time
 
@@ -636,36 +676,55 @@ gso.fire.filtered = gso.fire %>%
 ```
 
 ```{r, echo=FALSE}
-gso.fire.filtered = gso.fire.filtered %>% 
-  mutate(AlarmHour = as.factor(AlarmHour))
-  
+gso.fire.filtered = gso.fire.filtered %>%
+  mutate(AlarmTime = case_when(AlarmHour >= 0 & AlarmHour < 6 ~ "0-5", 
+                               AlarmHour >= 6 & AlarmHour < 12 ~ "6-11",
+                               AlarmHour >= 12 & AlarmHour < 18 ~ "12-17",
+                               TRUE ~ "18-23"))
 ```
 
+
 First we created a linear regression model without variable selection.
+```{r, echo=FALSE}
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                   shift + Month + AlarmTime + NatureCode, data = gso.fire.filtered)
+summary(lm.res.time)
+```
 
 
 Then we used the function stepAIC for variable selection.
 ```{r, echo=FALSE}
-lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + shift + Month + AlarmHour, data = gso.fire.filtered)
 lm.res.time.select = stepAIC(lm.res.time)
 summary(lm.res.time.select)
 
 ```
 
+After that we also tried LASSO variable selection with the glmnet function
+```{r, echo=FALSE}
+las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
+plot(las.Mod)
+```
+
+
 ### Random Forest
 
 ```{r, echo=FALSE}
-RF.Mod <- randomForest(response_time_seconds~response_time_period + total_response_period +
-                         total_response_seconds + AlarmDate2 + call_process_period +
-                         call_process_seconds + TotalApparatus + CivilianInjuries +
-                         CivilianFatalities + TotalStaffOnIncident + ContentValue +
-                         FireServiceFatalities + FireServiceInjuries + ContentLoss +
-                         TotalLosses + PropertyValue + PropertyUse + PropertyLoss +
-                         shift + FireDemandZone + NumberOfAlarms,
-                       data = gso.fire.filtered, importance = TRUE, ntree = 10, na.action=na.exclude)
+gso.fire.filtered.rf = gso.fire.filtered %>%
+  dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
+           shift , Month , AlarmTime , NatureCode)
 
-plot(RF.Mod, main = "Random Forest (Error rate vs. Number of trees")
-varImpPlot(RF.Mod) # Variables of importance for the random forest model
+RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                         shift + Month + AlarmTime + NatureCode,
+                       data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+
+variable = names(RF.Mod.Ranger$variable.importance)
+rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
+
+ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
+  geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
+  ylab("Variable Importance")+
+  xlab("")+
+  ggtitle("Information Value Summary")
 ```
 
 

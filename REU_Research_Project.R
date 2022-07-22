@@ -15,6 +15,7 @@ library(caret)
 library(forecast)
 library(urca)
 library(randomForest)
+library(ranger)
 
 
 #loading data set
@@ -372,7 +373,10 @@ incidents_annual %>%
   geom_line() + 
   scale_x_date(date_labels = "%m-%Y", date_breaks = "1 month") + 
   xlab("Date") + ylab("Count") + 
-  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(angle = 90, size = 14)) +
+  theme(axis.text.y = element_text(size = 14)) +
+  theme(plot.title = element_text(size=22)) +
+  theme(axis.title=element_text(size=18)) +
   facet_wrap(~Year, scales = "free_x")
 
 
@@ -401,10 +405,9 @@ gso.fire.ts.month %>%
 gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                  frequency = 365)
 
-
 #check for stationarity
 
-#determine the number of differences required for time series x to be made stationary
+#determine the number of differences required for time series to be made stationary
 ndiffs(gso.fire.ts.2) #1
 
 nsdiffs(gso.fire.ts.2) #0
@@ -426,11 +429,51 @@ cbind("Fire Incidents" = gso.fire.ts.2,
   xlab("Date") + ylab("") +
   ggtitle("Stationarity Transformations of Daily Fire Incidents")
 
+#now forecasting daily number of fire incidents
+
+y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats = tbats(y.dif)
+daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+
+
+#point forecast values
+dif.Yhat = daily.dif.tbats.fc$mean
+dif.Yhat.upper = daily.dif.tbats.fc$upper
+dif.Yhat.lower = daily.dif.tbats.fc$lower
+
+Yhat = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
+Yhat = ts(Yhat, start = c(2022, 152), frequency=365)
+Yhat_upper = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
+Yhat_upper = ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
+Yhat_lower = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
+Yhat_lower = ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+
+fire.ts = ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
+              frequency = 360) # A 360 day trim to see forecast better
+
+#TBAT forecasting
+autoplot(fire.ts) + 
+  autolayer(Yhat, series="Point Forecasts") +
+  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") + ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+
+
+#ARIMA forecasting
+daily.arima = auto.arima(gso.fire.ts.2)
+daily.arima.fc = forecast(daily.arima, h=214)
+autoplot(daily.arima.fc) +
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+
 #Forecasting for monthly number of Fire Incidents
 
 #convert gso.fire.ts to official ts object
-gso.fire.ts.month.2 <- ts(gso.fire.ts.month$n, start = c(2010, 7), end = c(2022, 6),
-                    frequency = 12)
+gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
+                          frequency = 12)
 
 #looking at stationarity
 acf(gso.fire.ts.month.2)
@@ -455,47 +498,38 @@ cbind("Fire Incidents" = gso.fire.ts.month.2,
   xlab("Date") + ylab("") +
   ggtitle("Stationarity Transformation of Monthly Fire Incidents")
 
+#now forecasting monthly number of fire incidents
 
-#now forecasting daily number of fire incidents
-
-y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
-daily.dif.tbats = tbats(y.dif)
-daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
+daily.dif.tbats.month = tbats(y.dif.month)
+daily.dif.tbats.month.fc = forecast::forecast(daily.dif.tbats.month, h = 8)
 
 
 #point forecast values
-dif.Yhat = daily.dif.tbats.fc$mean
-dif.Yhat.upper <- daily.dif.tbats.fc$upper
-dif.Yhat.lower <- daily.dif.tbats.fc$lower
+dif.Yhat.month = daily.dif.tbats.month.fc$mean
 
-Yhat <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
-Yhat <- ts(Yhat, start = c(2022, 152), frequency=365)
-Yhat_upper <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
-Yhat_upper <- ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
-Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
-Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+Yhat.month = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dif.Yhat.month))
+Yhat.month = ts(Yhat, start = c(7, 5), frequency=12)
 
-fire.ts <- ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
-              frequency = 360) # A 360 day trim to see forecast better
+#TBATS forecasting
+autoplot(gso.fire.ts.month.2) + 
+  autolayer(Yhat.month, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Monthly Number of Fire Incidents") +
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=10), 
+        legend.position = "bottom") 
 
-#TBAT forecasting
-autoplot(fire.ts) + 
-  autolayer(Yhat, series="Point Forecasts") + 
-  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
-  xlab("Date") + ylab("Fire Incidents") + 
-  theme(title = element_text(size = 10), legend.position = "bottom")
-
-#h=ifelse(frequency(daily.arima) > 1, 2 * frequency(daily.arima), 10)
 
 #ARIMA forecasting
 daily.arima <- auto.arima(gso.fire.ts.2)
-#what is h in forecasting?
 daily.arima.fc <- forecast(daily.arima, h=214)
-autoplot(daily.arima.fc) + 
+autoplot(daily.arima.fc) +
   ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
-  xlab("Date") + ylab("Fire Incidents") + 
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
-
 
 #Modeling of Response Time
 
@@ -525,31 +559,23 @@ summary(lm.res.time.select)
 #Lasso variable selection
 las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
 plot(las.Mod)
-#lasso.mod = cv.glmnet(x = as.matrix(x), y = as.matrix(p$response_time_seconds),
-#                     family = "gaussian", alpha = 1)
 
-#Random Forrest
-RF.Mod <- randomForest(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
-                         shift + Month + AlarmTime + NatureCode,
-                       data = gso.fire.filtered, importance = TRUE, ntree = 10, na.action=na.exclude)
 
-plot(RF.Mod, main = "Random Forest (Error rate vs. Number of trees")
-varImpPlot(RF.Mod) # Variables of importance for the random forest model
+#Random Forrest with ranger functiom
 
-install.packages("ranger")
-library(ranger)
-?ranger
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
            shift , Month , AlarmTime , NatureCode)
+
 RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
                          shift + Month + AlarmTime + NatureCode,
                        data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+
+variable = names(RF.Mod.Ranger$variable.importance)
+rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
+
 ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
   geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
   ylab("Variable Importance")+
   xlab("")+
   ggtitle("Information Value Summary")
-barplot(sort(RF.Mod.Ranger$variable.importance))
-variable = names(RF.Mod.Ranger$variable.importance)
-rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
