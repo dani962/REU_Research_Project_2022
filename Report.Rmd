@@ -12,9 +12,9 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Abstract
+## Abstract
 
-# Introduction
+## Introduction
 Many calls are made to fire departments all the time. Whether it is a false alarm or not, it is important for first responders to take care of fire incidents as soon as possible. Therefore it is important to look at data about different fire incidents and see how the response time can be improved for all kinds of situations.
 
 There are all kinds of fire incidents, some not even about fires. For example someone could be having a stroke and the local fire department was called to take action on the situation. If the incident is a fire, it could be at all kinds of different properties. Some different properties are small houses, apartment buildings, and highways. The fire could vary in size, like the wildfires in California.
@@ -25,27 +25,33 @@ For more than ten years, the city of Greensboro, NC has been collecting data on 
 
 For this project we will be visualizing the fire incidents in Greensboro, NC. Our research questions are 1) What factors affect the response time to fire incidents? 2) How to improve the response time? 3) How does response time by fire emergency services affect the rate of total loss and civilian injuries? 4)Can we build models to forecast the number of fire incidents in certain areas of Greensboro based on the data from 2010 to 2022? 5) what Dynamic models can we make for forecasting fire incidents?
 
-# Related Literature
+## Related Literature
 https://www.researchgate.net/publication/316976331_Modelling_residential_fire_incident_response_times_A_spatial_analytic_approach
+
 https://www.researchgate.net/publication/226273683_The_Relationships_Between_Fire_Service_Response_Time_and_Fire_Outcomes
+
 https://www.researchgate.net/publication/333158843_Statistical_Analysis_of_Fire_Department_Response_Times_and_Effects_on_Fire_Outcomes_in_the_United_States
+
 https://dl.acm.org/doi/abs/10.1145/3523286.3524560
+
 https://dl.acm.org/doi/10.5555/3091125.3091154
+
 https://ieeexplore.ieee.org/document/9060320
+
 https://ieeexplore.ieee.org/abstract/document/7046087
 
 Prior to beginning this study we sought the obtain as much knowledge from previous similar reports as possible. In this process we were able to acquire multiple different reports from a variety of different topics ranging from forecasting mass fires to observing response time. Although multiple studies have sought to capture the analytics behind many different aspects in regards to fire incidents, not many have gone completely in-depth in terms of covering fully what factors can affect fire service response time, analyzing how response time affects other factors like property loss and civilian injuries, and building a sufficient forecasting model for a given Fire Department to help better enhance their levels of service. In this report we aim to completely cover all given factors that may effect fire service response time and how response time effects the rate of total loss in Greensboro, NC. Additionally, to help the Greensboro Fire Departments be better prepared for dealing with future fire incidents in the city, we will build time series models to forecast the future daily/weekly number of fire incidents in the city.
 
 
 
-# Data, Method, and Analysis
+## Data, Method, and Analysis
 
-## Data
+### Data
 For this analysis, we utilized public data from the Greensboro Fire Department. This data set accounts for all reported fire incidents in the city of Greensboro from July 1st of 2010 to June 1st of 2022. Although, we noticed there were some missing values in the data. So we did a map to check the percentage of missing values and it ended being about 14 percent for the whole data set.
 
-## Methods
+### Methods
 
-### Exploratory Data Analysis
+#### Exploratory Data Analysis
 The first step in our research project was exploratory data analysis. During this process we investigated the data looking for patterns and outliers. This was carried out by making various graphical representations of the data.
 
 
@@ -120,7 +126,7 @@ cutoff.response_time = gso.fire %>%
 ```
 
 
-### Univariate Explorations
+#### Univariate Explorations
 Data Visualizations consisting of one variable
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
@@ -241,7 +247,7 @@ gso.fire %>%
 This visual was used to look further into if there was a higher frequency of calls to fire stations in certain parts of the year. From the results, June and February seem to have the lowest frequency of calls, while January and December have the highest frequency of calls. With this knowledge we can look at how response time varied with those months.
 
 
-### Bivariate Explorations
+#### Bivariate Explorations
 Data Visualizations of a given variable vs response time
 
 
@@ -448,10 +454,10 @@ gso.fire %>%
 
 For the graph above, there would sometimes be a couple alarms set off for a fire incident, but it did not affect the response time whether the alarm was once or twice.
 
-## Time Series Visualization
+### Time Series Visualization
 This section contains the visualization of all the data of the fire incidents in Greensboro, NC from July 1, 2010 to May 31, 2022.
 
-### Daily Time series
+#### Daily Time series
 
 ```{r, echo=FALSE}
 gso.fire.ts = gso.fire %>%
@@ -463,9 +469,11 @@ gso.fire.ts = gso.fire %>%
 gso.fire.ts %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m-%Y", date_breaks = "6 month") + 
   xlab("Year") +
   ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents")
+  ggtitle("Time series of daily number of fire incidents") +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 Above is a time series plot of the daily number of fire incidents from July 1, 2010 to June 1st 2022. As shown by the plot, there were big spikes around 2014, 2018, and 2021.
@@ -476,8 +484,10 @@ To take a deeper look into the time series below is the daily time series graphs
 incidents_annual = gso.fire.ts %>%
   separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day")) #%>%
   #select(-Month)
+
 incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
 colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
+
 incidents_annual %>%
   ggplot(aes(x = AlarmDate2, y = n)) + 
   ggtitle("Time Series Plots for Frequency of Daily Fire Incidents From 2010 to 2022") + 
@@ -489,11 +499,12 @@ incidents_annual %>%
   theme(plot.title = element_text(size=22)) +
   theme(axis.title=element_text(size=18)) +
   facet_wrap(~Year, scales = "free_x")
+
 ```
 
 Above is the time series of the daily fire incidents broken into plots by year. From these graphs we have a clearer view of peaks for each year. So from the results, we can see that there were major peeks around April 2011, March 2014, October 2018, and February 2021.
 
-### Monthly Time Series
+#### Monthly Time Series
 ```{r, echo=FALSE}
 gso.fire.ts.month = gso.fire %>%
   mutate(Monthly = make_date(Year, Month)) %>%
@@ -506,7 +517,7 @@ gso.fire.ts.month %>%
   ggplot(aes(x = Monthly, y = n)) +
   geom_line() +
   scale_x_date(date_labels = "%m-%y", date_breaks = "6 month") + 
-  xlab("Month") +
+  xlab("Date") +
   ylab("Number of Fire Incidents") +
   ggtitle("Time series of monthly number of fire incidents for 2010-2022") +
   theme(axis.text.x = element_text(angle = 90))
@@ -514,22 +525,19 @@ gso.fire.ts.month %>%
 
 Above is a time series graph depicting the number of monthly fire incidents from July 1, 2010 to May 31 2022. The graph shows an upward trend but with drastic drops occurring at dates like November of 2019 and November 2021.
 
-# Results
-## Time Series Forecasting
+## Results
+### Time Series Forecasting
 
-### Daily number of fire incidents from 2010 to 2022
+#### Daily number of fire incidents from 2010 to 2022
 
 In order to forecast the data we had to convert it into time series objects with the ts function in R studio.
-```{r}
+```{r,echo=FALSE}
 gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                  frequency = 365)
 ```
 
 
 Before forecasting we checked the data for stationarity. Meaning that we are checking that the time series has a constant mean and variance over time.
-```{r, echo=FALSE}
-acf(gso.fire.ts.2)
-```
 
 To check if the data needs any first difference calculations then we used the ndiffs function. Also to check if there needs to be any seasonal difference calculations then we used the nsdiffs function.
 ```{r}
@@ -537,6 +545,8 @@ To check if the data needs any first difference calculations then we used the nd
 ndiffs(gso.fire.ts.2) #1
 nsdiffs(gso.fire.ts.2) #0
 ```
+
+From the results, the data needs one difference, so we used the diff function to do that.
 
 Using the acf function we check that the data is stationary after we had done the first difference for the data.
 
@@ -546,6 +556,8 @@ gso.fire.ts.2.dif = diff(gso.fire.ts.2)
 #checking stationarity of first difference
 acf(gso.fire.ts.2.dif)
 ```
+
+Using the acf function we made sure that it did not take many lags to hit 0. From the results, the first difference made our data stationary.
 
 ```{r, echo=FALSE}
 cbind("Fire Incidents" = gso.fire.ts.2,
@@ -563,29 +575,35 @@ After checking for stationarity we could begin forecasting.
 y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats = tbats(y.dif)
 daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+
+
 #point forecast values
 dif.Yhat = daily.dif.tbats.fc$mean
 dif.Yhat.upper <- daily.dif.tbats.fc$upper
 dif.Yhat.lower <- daily.dif.tbats.fc$lower
+
 Yhat <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
 Yhat <- ts(Yhat, start = c(2022, 152), frequency=365)
 Yhat_upper <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
 Yhat_upper <- ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
 Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+
 fire.ts <- ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
               frequency = 360) # A 360 day trim to see forecast better
+
 #TBAT forecasting
 autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
   ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
   xlab("Date") + ylab("Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
+
 ```
 
 We used the Exponential smoothing state space model with Box-Cox transformation, ARMA errors, Trend and Seasonal components (TBATS model) because it is a popular model that tends to perform well at forecasting time series.
 
-For the plot above, we used the whole data set, from July 1, 2010 to May 31, 2022. We planned to forecast the fire incidents from June 1, 2010 to December 31, 2022. From the plot we can see that the TBATS was doing okay, it seemed to predict a slow big dip that would eventually start going up again before 2022 ended. The dip though seems to go below the average at one point.
+For the plot above, we used the whole data set, from July 1, 2010 to May 31, 2022. We planned to forecast the fire incidents from June 1, 2010 to December 31, 2022. From the plot we can see that the TBATS was doing well, it seemed to predict a slow big dip that would eventually start going up again before 2022 ended. The dip though seems to go below the average at one point.
 
 
 ```{r, echo=FALSE}
@@ -605,9 +623,39 @@ We also chose the Autoregressive Integrated Moving Average (ARIMA) model because
 For the plot above, there was a slight increase briefly and then after that the forecast created a horizontal line. The horizontal line appears to be close to the average line of the data.
 
 
-### Monthly number of fire incidents from 2010 to 2022
+```{r, echo=FALSE}
+#this daily data ends three months earlier than true daily data
+gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
+                                 frequency = 365)
+#attempt at differencing
+gso.fire.ts.3.dif = diff(gso.fire.ts.3)
 
-We again converted the data into a time series object in order to use the functions for forecasting the time series data.
+y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats.3 = tbats(y.dif.3)
+daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
+dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
+
+Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
+Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
+
+gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+                    frequency = 365)
+#TBAT forecasting
+autoplot(gso.fire.ts.3) + 
+  autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
+  autolayer(Yhat.3, alpha=0.6, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+```
+
+In the plot above we can see that the TBATS model(light red) did not follow the true number of fire incidents(light blue). This appears to be because the data end three months earlier at March 1, 2022 to see how the predictions would appear. So around that time period there were some drastic drops in number of fire incidents which led to the TBATS model forecasting such a severe drop in incidents.
+
+
+#### Monthly number of fire incidents from 2010 to 2022
+
+We again converted the data into a time series object us the ts function in order to use the functions for forecasting the time series data.
 ```{r, echo=FALSE}
 gso.fire.ts.month.2 <- ts(gso.fire.ts.month$n, start = c(2010, 7), end = c(2022, 6),
                     frequency = 12)
@@ -615,13 +663,10 @@ gso.fire.ts.month.2 <- ts(gso.fire.ts.month$n, start = c(2010, 7), end = c(2022,
 
 Then we checked the monthly data for stationarity.
 
-```{r, echo=FALSE}
+We used the ndiffs and nsdiffs functions for checking if a first difference or seasonal difference had to be calculated
+```{r}
 ndiffs(gso.fire.ts.2) #1
 nsdiffs(gso.fire.ts.2) #0
-```
-
-```{r, echo=FALSE}
-acf(gso.fire.ts.month.2)
 ```
 
 So, our data needs one first difference and that is done with the diff function. After that, we used the acf function to make sure that the difference transformation made our data stationary.
@@ -631,6 +676,8 @@ So, our data needs one first difference and that is done with the diff function.
 gso.fire.ts.month.2.dif = diff(gso.fire.ts.month.2)
 acf(gso.fire.ts.month.2.dif)
 ```
+
+Using the acf function again we made sure that it did not take many lags to hit 0. From the results, the first difference made our data stationary.
 
 ```{r, echo=FALSE}
 cbind("Fire Incidents" = gso.fire.ts.month.2,
@@ -644,13 +691,13 @@ The plot above shows the monthly time series graph before and after the first di
 
 Now that the monthly data is stationary we can being forecasting.
 
-# Modeling of Response Time
+## Modeling of Response Time
 
 In this section the results of the predictive modeling of fire incidents is displayed.
 
-There was one type of modeling done, and that was logistic regression. With this, we can evaluate the main factors that affect response time for fire incidents.
+There were two types of modeling done, linear regression and random forest. With this, we can evaluate the main factors that affect response time for fire incidents.
 
-## Linear Regression
+### Linear Regression
 
 In order to successfully depict the affect of each given variable in relation to response time the first model we sought was a Linear Regression model. With this approach we are able to identify which surrounding variables from our original data set directly impact our independent variable which in this case is fire service response time. First we filtered our cutoff point in regards to response time and ran a linear regression model with all given variables that we identified to have a direct impact on response time. Then we used two different variable selection methods to finalize the surrounding dependent variables being used in the Linear Regression model Once we completed the variable selection process we were able to identify that the variables holding significance in correlation to response time were TotalStaffOnIncident, FireDistrict, DayOfWeek, shift, Month, AlarmHour, and NatureCode. When originally running this test a couple of our dependent variables had processed as one big character component not giving the model its true ability to compare all given components within that given variable. To solve this we mutated these variables as factors in order to unravel the different contents within each variables allowing the model to accurately compare each given variable to fire service response time. In return we were able to mathematically see the significance of each variable and its impact on response time as a whole.
 
@@ -681,6 +728,7 @@ Then we used the stepwise regression for our first method of variable selection.
 ```{r, echo=FALSE}
 lm.res.time.select = stepAIC(lm.res.time)
 summary(lm.res.time.select)
+
 ```
 From this result we are able to see in further in detail which components effect response time and at what level due to the stepwise regression model eliminating the components that have little to no impact on response time. 
 
@@ -689,19 +737,23 @@ After that we also tried LASSO variable selection using the glmnet function.
 las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
 plot(las.Mod)
 ```
-This result allows us to view the level of significance in terms of each coefficient due to the shrinkage that this model produces. 
+This result allows us to view the level of significance in terms of each coefficient due to the shrinkage that this model produces.
 
-## Random Forest
-Below is a Random Forest model
+### Random Forest
+Below is a Random Forest model.
+
 ```{r, echo=FALSE}
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
            shift , Month , AlarmTime , NatureCode)
+
 RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
                          shift + Month + AlarmTime + NatureCode,
                        data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+
 variable = names(RF.Mod.Ranger$variable.importance)
 rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
+
 ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
   geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
   ylab("Variable Importance")+
@@ -711,9 +763,10 @@ ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+
 
 For our random forest model we produced a bar graph to display the significance in each variable from a model we created using the Ranger() command. In this graph we are able to visually identify how much the models accuracy would be affected by each variable. After producing the bar plot we are able to see that Nature Code holds the most importance in relation to the model. 
 
-# Conclusion
+## Conclusion
 
-# Discussion
+## Discussion
+
 In this report we worked intensively in order to analyze the key factors for reported fire incidents in Greensboro, NC using all reported data from June 1, 2010 to May 31, 2022. When further analyzing the data set given we were able to identify through our exploratory data analysis as well as regression and forecasting models how each variable holds significance in relations to fire service response time and successfully forecast the future in regards to reported fire incidents in Greensboro, NC. We also were able to further visualize the effects of response time on total loss. 
 
 Although our extensive data set equips us with a variety of different variables over a long time period, it is not perfect due to missing values within the data set and human error from the importation of the reported data. With us having to cater a bit to an imperfect data set we were still able to produce highly accurate results with the amount of information given. With this further exploration we were then able to forecast an accurate prediction in terms of reported fire incidents for the rest of the year. 
@@ -721,9 +774,8 @@ Although our extensive data set equips us with a variety of different variables 
 With our research results there are now many safe assumptions that can be made behind what holds affect within the different components that we studied in reported fire incidents. Through our exploratory data analysis we can see the affects of all given variables in relation to response time. Our regression models accurately depict to what extent the importance of each given variable has on the speed of response time. And lastly, our forecasting model equips the Greensboro Fire Department with an accurate prediction to continue through the rest of the year under maximum efficiency. 
 
 Looking through our findings there are many different observations that can be made in order to minimize response time thus leading towards safer situations. We were able to identify the difference in response time on any given day, week, year and even looked at how different response time varies in terms of the working shift for the fire service workers. Our findings also highlighted how much response time effects losses in terms of civilian injuries and fatalities, fire service injuries and fatalities, and total property loss. All of our discoveries from this research help equip the Greensboro Fire Department with high level information in order to perform they're job to maximum efficiency as well as minimizing response time in order to assure the safest outcome possible.
-# References
 
-# Appendix
+## Appendix
 This section contains the code to reproduce the analysis described in this report.
 
 Below is a list of the libraries that we used throughout the report.
@@ -1117,8 +1169,10 @@ gso.fire.ts %>%
 ```{r, eval=FALSE}
 incidents_annual = gso.fire.ts %>%
   separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day"))
+
 incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
 colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
+
 incidents_annual %>%
   ggplot(aes(x = AlarmDate2, y = n)) + 
   ggtitle("Time Series Plots for Frequency of Daily Fire Incidents Organized by Year") + 
@@ -1158,29 +1212,36 @@ ndiffs(gso.fire.ts.2)
 ndiffs(gso.fire.ts.2)
 acf(gso.fire.ts.2)
 summary(ur.kpss(gso.fire.ts.2))
+
 #attempt at differencing
 gso.fire.ts.2.dif = diff(gso.fire.ts.2)
 acf(gso.fire.ts.2.dif)
+
 cbind("Fire Incidents" = gso.fire.ts.2,
       "First differenced" = diff(gso.fire.ts.2)) %>%
   autoplot(facets=TRUE) +
   xlab("Date") + ylab("") +
   ggtitle("Stationarity Transformations of Daily Fire Incidents")
+
 y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats = tbats(y.dif)
 daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+
 #point forecast values
 dif.Yhat = daily.dif.tbats.fc$mean
 dif.Yhat.upper <- daily.dif.tbats.fc$upper
 dif.Yhat.lower <- daily.dif.tbats.fc$lower
+
 Yhat <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
 Yhat <- ts(Yhat, start = c(2022, 152), frequency=365)
 Yhat_upper <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
 Yhat_upper <- ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
 Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+
 fire.ts <- ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
               frequency = 360) # A 360 day trim to see forecast better
+
 #TBAT forecasting
 autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
@@ -1213,6 +1274,7 @@ RF.Mod <- randomForest(response_time_seconds~response_time_period + total_respon
                          TotalLosses + PropertyValue + PropertyUse + PropertyLoss +
                          shift + FireDemandZone + NumberOfAlarms,
                        data = gso.fire.filtered, importance = TRUE, ntree = 10, na.action=na.exclude)
+
 plot(RF.Mod, main = "Random Forest (Error rate vs. Number of trees")
 varImpPlot(RF.Mod) # Variables of importance for the random forest model
 ```

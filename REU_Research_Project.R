@@ -51,17 +51,17 @@ gso.fire = gso.fire %>%
   mutate(total_response_period = lubridate::hms(TotalResponseTime),
          total_response_seconds = period_to_seconds(total_response_period))
 
-#...
-#histograms
-#...
-
-
 #cutoff point for response time
 cutoff.response_time = gso.fire %>% 
   dplyr::select(response_time_seconds) %>%
   filter(!is.na(response_time_seconds)) %>%
   summarize(c = quantile(response_time_seconds, .75) + 3 * IQR(response_time_seconds)) %>%
   pull(c)
+
+#...
+#histograms
+#...
+
 
 #histogram of distribution of response time
 gso.fire %>%
@@ -469,6 +469,32 @@ autoplot(daily.arima.fc) +
   ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
 
+#this daily data ends three months earlier than true daily data
+gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
+                                 frequency = 365)
+#attempt at differencing
+gso.fire.ts.3.dif = diff(gso.fire.ts.3)
+
+y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats.3 = tbats(y.dif.3)
+daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
+dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
+
+Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
+Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
+
+gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+                    frequency = 365)
+#TBAT forecasting
+autoplot(gso.fire.ts.3) + 
+  autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
+  autolayer(Yhat.3, alpha=0.6, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+
+
 #Forecasting for monthly number of Fire Incidents
 
 #convert gso.fire.ts to official ts object
@@ -498,6 +524,8 @@ cbind("Fire Incidents" = gso.fire.ts.month.2,
   xlab("Date") + ylab("") +
   ggtitle("Stationarity Transformation of Monthly Fire Incidents")
 
+
+##########
 #now forecasting monthly number of fire incidents
 
 y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
