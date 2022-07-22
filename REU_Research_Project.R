@@ -494,6 +494,16 @@ autoplot(gso.fire.ts.3) +
   ylab("Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
 
+#ARIMA forecasting
+daily.arima.3 = auto.arima(gso.fire.ts.3)
+daily.arima.fc.3 = forecast(daily.arima.3, h=671)
+autoplot(daily.arima.fc.3) + 
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") +
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+
 
 #Forecasting for monthly number of Fire Incidents
 

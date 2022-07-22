@@ -652,6 +652,19 @@ autoplot(gso.fire.ts.3) +
 
 In the plot above we can see that the TBATS model(light red) did not follow the true number of fire incidents(light blue). This appears to be because the data end three months earlier at March 1, 2022 to see how the predictions would appear. So around that time period there were some drastic drops in number of fire incidents which led to the TBATS model forecasting such a severe drop in incidents.
 
+```{r, echo=FALSE}
+#ARIMA forecasting
+daily.arima.3 = auto.arima(gso.fire.ts.3)
+daily.arima.fc.3 = forecast(daily.arima.3, h=671)
+autoplot(daily.arima.fc.3) + 
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") +
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+```
+
+From the plot above, there was an increase briefly and then the forecast created a horizontal line. Plus, the horizontal line appears to be close to the average line of the data. So when ended the data set three months earlier the ARIMA model did better than the TBATS for predicting number of future fire incidents.
 
 #### Monthly number of fire incidents from 2010 to 2022
 
