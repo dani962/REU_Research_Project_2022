@@ -714,7 +714,13 @@ For our random forest model we produced a bar graph to display the significance 
 # Conclusion
 
 # Discussion
+In this report we worked intensively in order to analyze the key factors for reported fire incidents in Greensboro, NC using all reported data from June 1, 2010 to May 31, 2022. When further analyzing the data set given we were able to identify through our exploratory data analysis as well as regression and forecasting models how each variable holds significance in relations to fire service response time and successfully forecast the future in regards to reported fire incidents in Greensboro, NC. We also were able to further visualize the effects of response time on total loss. 
 
+Although our extensive data set equips us with a variety of different variables over a long time period, it is not perfect due to missing values within the data set and human error from the importation of the reported data. With us having to cater a bit to an imperfect data set we were still able to produce highly accurate results with the amount of information given. With this further exploration we were then able to forecast an accurate prediction in terms of reported fire incidents for the rest of the year. 
+
+With our research results there are now many safe assumptions that can be made behind what holds affect within the different components that we studied in reported fire incidents. Through our exploratory data analysis we can see the affects of all given variables in relation to response time. Our regression models accurately depict to what extent the importance of each given variable has on the speed of response time. And lastly, our forecasting model equips the Greensboro Fire Department with an accurate prediction to continue through the rest of the year under maximum efficiency. 
+
+Looking through our findings there are many different observations that can be made in order to minimize response time thus leading towards safer situations. We were able to identify the difference in response time on any given day, week, year and even looked at how different response time varies in terms of the working shift for the fire service workers. Our findings also highlighted how much response time effects losses in terms of civilian injuries and fatalities, fire service injuries and fatalities, and total property loss. All of our discoveries from this research help equip the Greensboro Fire Department with high level information in order to perform they're job to maximum efficiency as well as minimizing response time in order to assure the safest outcome possible.
 # References
 
 # Appendix
