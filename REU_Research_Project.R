@@ -1,3 +1,4 @@
+rm(list=ls())
 library(readr)
 library(lubridate)
 library(ggplot2)
@@ -403,7 +404,7 @@ gso.fire.ts.month %>%
 
 #convert gso.fire.ts to official ts object
 gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
-                 frequency = 365)
+                    frequency = 365)
 
 #check for stationarity
 
@@ -449,7 +450,7 @@ Yhat_lower = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower = ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
 
 fire.ts = ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
-              frequency = 360) # A 360 day trim to see forecast better
+             frequency = 360) # A 360 day trim to see forecast better
 
 #TBAT forecasting
 autoplot(fire.ts) + 
@@ -471,7 +472,7 @@ autoplot(daily.arima.fc) +
 
 #this daily data ends three months earlier than true daily data
 gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
-                                 frequency = 365)
+                   frequency = 365)
 #attempt at differencing
 gso.fire.ts.3.dif = diff(gso.fire.ts.3)
 
@@ -484,7 +485,7 @@ Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
 Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
 
 gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
-                    frequency = 365)
+                       frequency = 365)
 #TBAT forecasting
 autoplot(gso.fire.ts.3) + 
   autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
@@ -509,7 +510,7 @@ autoplot(daily.arima.fc.3) +
 
 #convert gso.fire.ts.month to official ts object
 gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
-                          frequency = 12)
+                         frequency = 12)
 
 #looking at stationarity
 acf(gso.fire.ts.month.2)
@@ -569,6 +570,44 @@ autoplot(daily.arima.fc) +
   ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
 
+#this monthly data ends three months earlier than true daily data
+gso.fire.ts.month.3 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
+                   frequency = 12)
+
+#differencing
+gso.fire.ts.month.3.dif = diff(gso.fire.ts.month.3)
+
+y.dif.month.3 = msts(gso.fire.ts.month.3.dif, seasonal.periods=c(12))
+daily.dif.tbats.month.3 = tbats(y.dif.month.3)
+daily.dif.tbats.month.fc.3 = forecast::forecast(daily.dif.tbats.month.3, h=8)
+
+dif.Yhat.month.3 = daily.dif.tbats.month.fc.3$mean #point forecast values 
+
+Yhat.month.3 = cumsum(c(gso.fire.ts.month.3[length(gso.fire.ts.month.3)],dif.Yhat.month.3))
+Yhat.month.3 = ts(Yhat.month.3, start = c(2022, 05), frequency=12)
+
+gso.fire.ts.month.true <- ts(gso.fire.ts$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
+                       frequency = 12)
+
+# TBATS
+autoplot(gso.fire.ts.month.3) + 
+  autolayer(gso.fire.ts.month.true, alpha=0.7, series="True Count") +
+  autolayer(Yhat.month.3, alpha=0.6, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Monthly Number of Fire Incidents") +
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom") 
+
+# Arima
+daily.arima.month.3 = auto.arima(gso.fire.ts.month.3)
+daily.arima.fc.month.3 = forecast(daily.arima.month.3, h=8)
+autoplot(daily.arima.fc.month.3) + 
+  ggtitle("ARIMA Forecasting Model for Monthly Number of Fire Incidents") +
+  xlab("Date") +
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+
 #Modeling of Response Time
 
 #Filtering data
@@ -600,11 +639,11 @@ plot(las.Mod)
 #Random Forrest with ranger functiom
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
-           shift , Month , AlarmTime , NatureCode)
+                shift , Month , AlarmTime , NatureCode)
 
 RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
-                         shift + Month + AlarmTime + NatureCode,
-                       data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+                          shift + Month + AlarmTime + NatureCode,
+                        data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
 
 variable = names(RF.Mod.Ranger$variable.importance)
 rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
