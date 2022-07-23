@@ -507,7 +507,7 @@ autoplot(daily.arima.fc.3) +
 
 #Forecasting for monthly number of Fire Incidents
 
-#convert gso.fire.ts to official ts object
+#convert gso.fire.ts.month to official ts object
 gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
                           frequency = 12)
 
@@ -547,7 +547,7 @@ daily.dif.tbats.month.fc = forecast::forecast(daily.dif.tbats.month, h = 8)
 dif.Yhat.month = daily.dif.tbats.month.fc$mean
 
 Yhat.month = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dif.Yhat.month))
-Yhat.month = ts(Yhat, start = c(7, 5), frequency=12)
+Yhat.month = ts(Yhat.month, start = c(2022, 05), frequency=12)
 
 #TBATS forecasting
 autoplot(gso.fire.ts.month.2) + 
@@ -582,9 +582,7 @@ gso.fire.filtered = gso.fire.filtered %>%
                                AlarmHour >= 12 & AlarmHour < 18 ~ "12-17",
                                TRUE ~ "18-23"))
 
-p = gso.fire.filtered[,-64]
-
-#No variable selection
+#manual variable selection
 lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + 
                    shift + Month + AlarmTime + NatureCode, data = gso.fire.filtered)
 summary(lm.res.time)
@@ -600,7 +598,6 @@ plot(las.Mod)
 
 
 #Random Forrest with ranger functiom
-
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
            shift , Month , AlarmTime , NatureCode)

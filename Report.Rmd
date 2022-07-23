@@ -704,6 +704,41 @@ The plot above shows the monthly time series graph before and after the first di
 
 Now that the monthly data is stationary we can being forecasting.
 
+```{r, echo=FALSE}
+y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
+daily.dif.tbats.month = tbats(y.dif.month)
+daily.dif.tbats.month.fc = forecast::forecast(daily.dif.tbats.month, h = 8)
+
+
+#point forecast values
+dif.Yhat.month = daily.dif.tbats.month.fc$mean
+
+Yhat.month = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dif.Yhat.month))
+Yhat.month = ts(Yhat.month, start = c(2022, 05), frequency=12)
+
+#TBATS forecasting
+autoplot(gso.fire.ts.month.2) + 
+  autolayer(Yhat.month, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Monthly Number of Fire Incidents") +
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=10), 
+        legend.position = "bottom") 
+```
+
+```{r, echo=FALSE}
+#ARIMA forecasting
+daily.arima <- auto.arima(gso.fire.ts.2)
+daily.arima.fc <- forecast(daily.arima, h=214)
+autoplot(daily.arima.fc) +
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+```
+
+
 ## Modeling of Response Time
 
 In this section the results of the predictive modeling of fire incidents is displayed.
@@ -750,6 +785,7 @@ After that we also tried LASSO variable selection using the glmnet function.
 las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
 plot(las.Mod)
 ```
+
 This result allows us to view the level of significance in terms of each coefficient due to the shrinkage that this model produces.
 
 ### Random Forest
@@ -813,6 +849,7 @@ library(caret)
 library(forecast)
 library(urca)
 library(randomForest)
+library(ranger)
 ```
 
 #### Data Preprocessing
@@ -1161,7 +1198,7 @@ gso.fire %>%
 
 
 ### Time Series Visualization
-Visualization of fire incidents in Greensboro, NC.
+Visualization of fire incidents in Greensboro, NC from July 1, 2010 to May 31, 2022.
 
 ```{r, eval=FALSE}
 gso.fire.ts = gso.fire %>%
@@ -1173,9 +1210,11 @@ gso.fire.ts = gso.fire %>%
 gso.fire.ts %>%
   ggplot(aes(x = AlarmDate2, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m-%Y", date_breaks = "6 month") + 
   xlab("Year") +
   ylab("Number of Fire Incidents") +
-  ggtitle("Time series of daily number of fire incidents")
+  ggtitle("Time series of daily number of fire incidents") +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 
@@ -1192,7 +1231,10 @@ incidents_annual %>%
   geom_line() + 
   scale_x_date(date_labels = "%m-%Y", date_breaks = "1 month") + 
   xlab("Date") + ylab("Count") + 
-  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(angle = 90, size = 14)) +
+  theme(axis.text.y = element_text(size = 14)) +
+  theme(plot.title = element_text(size=22)) +
+  theme(axis.title=element_text(size=18)) +
   facet_wrap(~Year, scales = "free_x")
 ``` 
 
@@ -1210,9 +1252,11 @@ gso.fire.ts.month = gso.fire %>%
 gso.fire.ts.month %>%
   ggplot(aes(x = Monthly, y = n)) +
   geom_line() +
+  scale_x_date(date_labels = "%m-%y", date_breaks = "6 month") + 
   xlab("Month") +
   ylab("Number of Fire Incidents") +
-  ggtitle("Time series of monthly number of fire incidents for 2010-2022")
+  ggtitle("Time series of monthly number of fire incidents for 2010-2022") +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 
@@ -1263,32 +1307,142 @@ autoplot(fire.ts) +
   theme(title = element_text(size = 10), legend.position = "bottom")
 ```
 
+```{r, eval=FALSE}
+#ARIMA forecasting
+daily.arima = auto.arima(gso.fire.ts.2)
+daily.arima.fc = forecast(daily.arima, h=214)
+autoplot(daily.arima.fc) +
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+```
+
+```{r, eval=FALSE}
+gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
+                                 frequency = 365)
+#attempt at differencing
+gso.fire.ts.3.dif = diff(gso.fire.ts.3)
+
+y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats.3 = tbats(y.dif.3)
+daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
+dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
+
+Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
+Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
+
+gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+                    frequency = 365)
+#TBAT forecasting
+autoplot(gso.fire.ts.3) + 
+  autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
+  autolayer(Yhat.3, alpha=0.6, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+```
+
+```{r, eval=FALSE}
+#ARIMA forecasting
+daily.arima.3 = auto.arima(gso.fire.ts.3)
+daily.arima.fc.3 = forecast(daily.arima.3, h=671)
+autoplot(daily.arima.fc.3) + 
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") +
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+```
+
+Forecasting for monthly number of fire incidents.
+```{r, eval=FALSE}
+#convert gso.fire.ts.month to official ts object
+gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
+                          frequency = 12)
+
+#looking at stationarity
+acf(gso.fire.ts.month.2)
+summary(ur.kpss(gso.fire.ts.month.2))
+
+ndiffs(gso.fire.ts.month.2) #1
+nsdiffs(gso.fire.ts.month.2) #0
+
+#attempt at differencing
+gso.fire.ts.month.2.dif = diff(gso.fire.ts.month.2)
+
+#looking at stationarity for difference
+acf(gso.fire.ts.month.2.dif)
+
+summary(ur.kpss(gso.fire.ts.month.2.dif))
+ndiffs(gso.fire.ts.month.2.dif) #0
+nsdiffs(gso.fire.ts.month.2.dif) #0
+
+cbind("Fire Incidents" = gso.fire.ts.month.2,
+      "First differenced" = diff(gso.fire.ts.month.2)) %>%
+  autoplot(facets=TRUE) +
+  xlab("Date") + ylab("") +
+  ggtitle("Stationarity Transformation of Monthly Fire Incidents")
+```
+
+
 ### Modeling of Response Time
 ```{r, eval=FALSE}
 gso.fire.filtered = gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>% 
   dplyr::select(response_time_seconds, everything())
+
+gso.fire.filtered = gso.fire.filtered %>%
+  mutate(AlarmTime = case_when(AlarmHour >= 0 & AlarmHour < 6 ~ "0-5", 
+                               AlarmHour >= 6 & AlarmHour < 12 ~ "6-11",
+                               AlarmHour >= 12 & AlarmHour < 18 ~ "12-17",
+                               TRUE ~ "18-23"))
 ```
 
 ### Linear Regression Model
+
+```{r, eval=FALSE}
+#manual variable selection
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                   shift + Month + AlarmTime + NatureCode, data = gso.fire.filtered)
+summary(lm.res.time)
+round(coef(lm.res.time), 4)
+```
+
 
 ```{r, eval=FALSE}
 lm.res.time.select = stepAIC(lm.res.time)
 summary(lm.res.time.select)
 ```
 
-### Random Forest
 ```{r, eval=FALSE}
-RF.Mod <- randomForest(response_time_seconds~response_time_period + total_response_period +
-                         total_response_seconds + AlarmDate2 + call_process_period +
-                         call_process_seconds + TotalApparatus + CivilianInjuries +
-                         CivilianFatalities + TotalStaffOnIncident + ContentValue +
-                         FireServiceFatalities + FireServiceInjuries + ContentLoss +
-                         TotalLosses + PropertyValue + PropertyUse + PropertyLoss +
-                         shift + FireDemandZone + NumberOfAlarms,
-                       data = gso.fire.filtered, importance = TRUE, ntree = 10, na.action=na.exclude)
-
-plot(RF.Mod, main = "Random Forest (Error rate vs. Number of trees")
-varImpPlot(RF.Mod) # Variables of importance for the random forest model
+#Lasso variable selection
+las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
+plot(las.Mod)
 ```
+
+
+### Random Forest
+```{r}
+#Random Forrest with ranger functiom
+gso.fire.filtered.rf = gso.fire.filtered %>%
+  dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
+           shift , Month , AlarmTime , NatureCode)
+
+RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                         shift + Month + AlarmTime + NatureCode,
+                       data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+
+variable = names(RF.Mod.Ranger$variable.importance)
+rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
+
+ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
+  geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
+  ylab("Variable Importance")+
+  xlab("")+
+  ggtitle("Information Value Summary")
+```
+
 
