@@ -1,4 +1,3 @@
-rm(list=ls())
 library(readr)
 library(lubridate)
 library(ggplot2)
@@ -17,6 +16,7 @@ library(forecast)
 library(urca)
 library(randomForest)
 library(ranger)
+library(astsa)
 
 
 #loading data set
@@ -67,8 +67,8 @@ cutoff.response_time = gso.fire %>%
 #histogram of distribution of response time
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = response_time_seconds, fill = "red")) +
-  geom_histogram(show.legend = FALSE, color = "black") +
+  ggplot(aes(x = response_time_seconds)) +
+  geom_histogram(show.legend = FALSE, color = "black", fill = "pink") +
   xlab("Response Time (Seconds)") +
   ylab("Count") +
   ggtitle("Distribution of Response Time") +
@@ -404,7 +404,7 @@ gso.fire.ts.month %>%
 
 #convert gso.fire.ts to official ts object
 gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
-                    frequency = 365)
+                 frequency = 365)
 
 #check for stationarity
 
@@ -431,7 +431,6 @@ cbind("Fire Incidents" = gso.fire.ts.2,
   ggtitle("Stationarity Transformations of Daily Fire Incidents")
 
 #now forecasting daily number of fire incidents
-
 y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats = tbats(y.dif)
 daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
@@ -450,7 +449,7 @@ Yhat_lower = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower = ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
 
 fire.ts = ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
-             frequency = 360) # A 360 day trim to see forecast better
+              frequency = 360) # A 360 day trim to see forecast better
 
 #TBAT forecasting
 autoplot(fire.ts) + 
@@ -472,7 +471,7 @@ autoplot(daily.arima.fc) +
 
 #this daily data ends three months earlier than true daily data
 gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
-                   frequency = 365)
+                                 frequency = 365)
 #attempt at differencing
 gso.fire.ts.3.dif = diff(gso.fire.ts.3)
 
@@ -485,7 +484,7 @@ Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
 Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
 
 gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
-                       frequency = 365)
+                    frequency = 365)
 #TBAT forecasting
 autoplot(gso.fire.ts.3) + 
   autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
@@ -505,12 +504,11 @@ autoplot(daily.arima.fc.3) +
   ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
 
-
 #Forecasting for monthly number of Fire Incidents
 
 #convert gso.fire.ts.month to official ts object
 gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
-                         frequency = 12)
+                          frequency = 12)
 
 #looking at stationarity
 acf(gso.fire.ts.month.2)
@@ -538,7 +536,6 @@ cbind("Fire Incidents" = gso.fire.ts.month.2,
 
 ##########
 #now forecasting monthly number of fire incidents
-
 y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
 daily.dif.tbats.month = tbats(y.dif.month)
 daily.dif.tbats.month.fc = forecast::forecast(daily.dif.tbats.month, h = 8)
@@ -561,52 +558,90 @@ autoplot(gso.fire.ts.month.2) +
 
 
 #ARIMA forecasting
-daily.arima <- auto.arima(gso.fire.ts.2)
-daily.arima.fc <- forecast(daily.arima, h=214)
-autoplot(daily.arima.fc) +
-  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+monthly.arima <- auto.arima(gso.fire.ts.month.2)
+monthly.arima.fc <- forecast(monthly.arima, h=8)
+autoplot(monthly.arima.fc) +
+  ggtitle("ARIMA Forecasting Model for Monthly Number of Fire Incidents") +
   xlab("Date") + 
   coord_cartesian(xlim = c(2020, 2023)) +
   ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
 
-#this monthly data ends three months earlier than true daily data
-gso.fire.ts.month.3 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
-                   frequency = 12)
 
-#differencing
-gso.fire.ts.month.3.dif = diff(gso.fire.ts.month.3)
+#HoltWinters forecasting
+dif.monthly.holt <- HoltWinters(gso.fire.ts.month.2.dif)
+dif.fcast.monthly <- forecast::forecast(dif.monthly.holt, h=8, level=c(80,95))
+dYhat.Holt <- dif.fcast.monthly$mean
 
-y.dif.month.3 = msts(gso.fire.ts.month.3.dif, seasonal.periods=c(12))
-daily.dif.tbats.month.3 = tbats(y.dif.month.3)
-daily.dif.tbats.month.fc.3 = forecast::forecast(daily.dif.tbats.month.3, h=8)
+Yhat.Holt <- cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.Holt))
+Yhat.Holt <- ts(Yhat.Holt, start = c(2022, 05), frequency=12)
 
-dif.Yhat.month.3 = daily.dif.tbats.month.fc.3$mean #point forecast values 
+autoplot(gso.fire.ts.month.2) +
+  autolayer(Yhat.Holt, series = "Point Forecasts") +
+  ggtitle("Forecasts of Monthly Number of Fire Incidents using HoltWinters") +
+  xlab("Date") +
+  ylab("Fire Incidents") +
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
+        legend.position = "bottom")
 
-Yhat.month.3 = cumsum(c(gso.fire.ts.month.3[length(gso.fire.ts.month.3)],dif.Yhat.month.3))
-Yhat.month.3 = ts(Yhat.month.3, start = c(2022, 05), frequency=12)
-
-gso.fire.ts.month.true <- ts(gso.fire.ts$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
-                       frequency = 12)
-
-# TBATS
-autoplot(gso.fire.ts.month.3) + 
-  autolayer(gso.fire.ts.month.true, alpha=0.7, series="True Count") +
-  autolayer(Yhat.month.3, alpha=0.6, series="Point Forecasts") + 
-  ggtitle("TBATS Forecasting Model for Monthly Number of Fire Incidents") +
+#SARIMA forecasting
+sarima.fc = sarima.for(gso.fire.ts.month.2, n.ahead=23, 1,0,0,0,1,1,12) 
+sarima.fc = ts(sarima.fc$pred, start=c(2022, 05),frequency=12)
+autoplot(gso.fire.ts.month.2) + 
+  autolayer(sarima.fc, series="Point Forecasts") + 
+  ggtitle("SARIMA Forecasting Model for Monthly Number of Fire Incidents")+
   xlab("Date") +
   ylab("Fire Incidents") + 
-  theme(title = element_text(size = 10), legend.position = "bottom") 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
+        legend.position = "bottom")
 
-# Arima
-daily.arima.month.3 = auto.arima(gso.fire.ts.month.3)
-daily.arima.fc.month.3 = forecast(daily.arima.month.3, h=8)
-autoplot(daily.arima.fc.month.3) + 
-  ggtitle("ARIMA Forecasting Model for Monthly Number of Fire Incidents") +
+#STLF Forecasting
+STLF.monthly = gso.fire.ts.2 %>%
+  stlf(lambda = 0, h = 23, level=c(80,95)) 
+STLF.monthly %>%
+  autoplot() + 
+  ggtitle("STLF Model for Monthly Number of Fire Incidents") +
   xlab("Date") +
+  ylab("Fire Incidents") + 
+  coord_cartesian(xlim = c(2022, 2023)) +
+  theme(axis.text.x = element_text(angle = 90))
+
+########
+#Multi-Step Forecasting
+
+#Daily Fire Incidents
+
+#getting differenced training and test sets 
+y.dif.2 = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
+dif.training.tbats.2 = subset(y.dif.2, end=length(y.dif.2)-151)
+dif.test.tbats.2 = subset(y.dif.2, start=length(y.dif.2)-150)
+dif.daily.train.tbats.2 = tbats(dif.training.tbats.2)
+dif.train.fc = forecast(dif.daily.train.tbats.2, h=151)
+
+#getting point forecasts 
+dYhat.tbats = dif.train.fc$mean
+
+#setting up normal ts training and test sets 
+y.2 <- msts(gso.fire.ts.2, seasonal.periods=c(7,365.25))
+training.tbats.2 <- subset(y.2, end=length(y.2)-151)
+test.tbats.2 <- subset(y.2, start=length(y.2)-150)
+
+#reverting back to original points   
+Yhat.tbats <- cumsum(c(training.tbats.2[length(training.tbats.2)], dYhat.tbats))
+Yhat.tbats <- ts(Yhat.tbats, start = c(2022, 1), frequency = 365)
+
+autoplot(training.tbats.2) + 
+  autolayer(Yhat.tbats, series="Point Forecasts") + 
+  autolayer(test.tbats.2, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step TBATS Daily Forecasts of Number of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Fire Incidents") +
   coord_cartesian(xlim = c(2020, 2023)) +
-  ylab("Fire Incidents") + 
-  theme(title = element_text(size = 10))
+  theme(legend.position = "bottom")
+
+dif_crashes.test_TBATS2 <- tbats(dif_test_TBATS2)
+accuracy(dif_crashes.test_TBATS2)
+
 
 #Modeling of Response Time
 
@@ -639,11 +674,11 @@ plot(las.Mod)
 #Random Forrest with ranger functiom
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
-                shift , Month , AlarmTime , NatureCode)
+           shift , Month , AlarmTime , NatureCode)
 
 RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
-                          shift + Month + AlarmTime + NatureCode,
-                        data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+                         shift + Month + AlarmTime + NatureCode,
+                       data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
 
 variable = names(RF.Mod.Ranger$variable.importance)
 rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
