@@ -537,7 +537,6 @@ gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                  frequency = 365)
 ```
 
-
 Before forecasting we checked the data for stationarity. Meaning that we are checking that the time series has a constant mean and variance over time.
 
 To check if the data needs any first difference calculations then we used the ndiffs function. Also to check if there needs to be any seasonal difference calculations then we used the nsdiffs function.
@@ -726,6 +725,7 @@ autoplot(gso.fire.ts.month.2) +
         legend.position = "bottom") 
 ```
 
+From the time series plot above, the TBATS model (red line) shows an increase for the future number of fire incidents. The line appears to fit fairly well with the trend of the data.
 
 ```{r, echo=FALSE}
 #ARIMA forecasting
@@ -738,6 +738,8 @@ autoplot(monthly.arima.fc) +
   ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
 ```
+
+In the plot above, it can be seen that the ARIMA model was producing similar spikes compared to the TBATS model and had done a fairly good job.
 
 ```{r, echo=FALSE}
 #HoltWinters forecasting
@@ -757,36 +759,7 @@ autoplot(gso.fire.ts.month.2) +
         legend.position = "bottom")
 ```
 
-```{r, echo=FALSE, include=FALSE}
-sarima.fc = sarima.for(gso.fire.ts.month.2, n.ahead=23, 1,0,0,0,1,1,12) 
-```
-
-
-```{r, echo=FALSE}
-#SARIMA forecasting
-sarima.fc = ts(sarima.fc$pred, start=c(2022, 05),frequency=12)
-autoplot(gso.fire.ts.month.2) + 
-  autolayer(sarima.fc, series="Point Forecasts") + 
-  ggtitle("SARIMA Forecasting Model for Monthly Number of Fire Incidents")+
-  xlab("Date") +
-  ylab("Fire Incidents") + 
-  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
-        legend.position = "bottom")
-```
-
-
-```{r, echo=FALSE}
-#STLF Forecasting
-STLF.monthly = gso.fire.ts.2 %>%
-  stlf(lambda = 0, h = 23, level=c(80,95)) 
-STLF.monthly %>%
-  autoplot() + 
-  ggtitle("STLF Model for Monthly Number of Fire Incidents") +
-  xlab("Date") +
-  ylab("Fire Incidents") + 
-  coord_cartesian(xlim = c(2022, 2023)) +
-  theme(axis.text.x = element_text(angle = 90))
-```
+As seen above, the HoltWinters model predicted much larger spikes upwards compared to the TBATS model. As a result, with such a drastic increase it is likely it would be less accurate than the TBATS model for this data.
 
 ## Multi-Step Forecasting
 
@@ -819,6 +792,50 @@ autoplot(training.tbats.2) +
   coord_cartesian(xlim = c(2020, 2023)) +
   theme(legend.position = "bottom")
 
+#checking accuracy
+dif.daily.test.tbats.2 <- tbats(dif.test.tbats.2)
+accuracy(dif.daily.test.tbats.2)
+
+```
+
+For the plot above, the data was split into a training set and a test set. The training set was from July 1, 2010 to December 31, 2022. The test set was from January 1, 2022 to May 31, 2022. The results show that the TBATS model did fairly well, but it did not follow the big dip in the true data.
+
+From the accuracy function, we can see that the errors of the TBATS model were small. The root mean square error was only 7.71.
+
+```{r, echo=FALSE}
+#multi-step ARIMA forecast for daily data
+training.arima = subset(gso.fire.ts.2, end=length(gso.fire.ts.2)-151)
+test.arima = subset(gso.fire.ts.2, start=length(gso.fire.ts.2)-150)
+daily.train.arima = auto.arima(training.arima)
+fc.train.arima = forecast(daily.train.arima, h=151)
+
+autoplot(fc.train.arima) + 
+  autolayer(test.arima, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Daily Forecasts of Number of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  theme(legend.position = "bottom")
+
+daily.test.arima = arima(test.arima)
+accuracy(daily.test.arima)
+```
+
+```{r, echo=FALSE}
+autoplot(train) +
+  autolayer(true.daily.ts) +
+  autolayer(Combination, series="Combination", alpha=0.8) +
+  autolayer(ARIMA, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo, series="TBATS", alpha=0.7) +
+  xlab("Date") +
+  ylab("Fire Incidents") +
+  ggtitle("Time Series Combination for daily number of fire incidents") + 
+  theme(legend.position = "bottom")
+
+c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo, gso.fire.ts.2)["Test set", "RMSE"],
+  Combination =
+    accuracy(Combination, gso.fire.ts.2)["Test set", "RMSE"])
 ```
 
 

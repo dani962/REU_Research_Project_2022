@@ -63,7 +63,6 @@ cutoff.response_time = gso.fire %>%
 #histograms
 #...
 
-
 #histogram of distribution of response time
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -558,8 +557,8 @@ autoplot(gso.fire.ts.month.2) +
 
 
 #ARIMA forecasting
-monthly.arima <- auto.arima(gso.fire.ts.month.2)
-monthly.arima.fc <- forecast(monthly.arima, h=8)
+monthly.arima = auto.arima(gso.fire.ts.month.2)
+monthly.arima.fc = forecast(monthly.arima, h=8)
 autoplot(monthly.arima.fc) +
   ggtitle("ARIMA Forecasting Model for Monthly Number of Fire Incidents") +
   xlab("Date") + 
@@ -569,12 +568,12 @@ autoplot(monthly.arima.fc) +
 
 
 #HoltWinters forecasting
-dif.monthly.holt <- HoltWinters(gso.fire.ts.month.2.dif)
-dif.fcast.monthly <- forecast::forecast(dif.monthly.holt, h=8, level=c(80,95))
-dYhat.Holt <- dif.fcast.monthly$mean
+dif.monthly.holt = HoltWinters(gso.fire.ts.month.2.dif)
+dif.fcast.monthly = forecast::forecast(dif.monthly.holt, h=8, level=c(80,95))
+dYhat.Holt = dif.fcast.monthly$mean
 
-Yhat.Holt <- cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.Holt))
-Yhat.Holt <- ts(Yhat.Holt, start = c(2022, 05), frequency=12)
+Yhat.Holt = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.Holt))
+Yhat.Holt = ts(Yhat.Holt, start = c(2022, 05), frequency=12)
 
 autoplot(gso.fire.ts.month.2) +
   autolayer(Yhat.Holt, series = "Point Forecasts") +
@@ -583,28 +582,6 @@ autoplot(gso.fire.ts.month.2) +
   ylab("Fire Incidents") +
   theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
         legend.position = "bottom")
-
-#SARIMA forecasting
-sarima.fc = sarima.for(gso.fire.ts.month.2, n.ahead=23, 1,0,0,0,1,1,12) 
-sarima.fc = ts(sarima.fc$pred, start=c(2022, 05),frequency=12)
-autoplot(gso.fire.ts.month.2) + 
-  autolayer(sarima.fc, series="Point Forecasts") + 
-  ggtitle("SARIMA Forecasting Model for Monthly Number of Fire Incidents")+
-  xlab("Date") +
-  ylab("Fire Incidents") + 
-  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
-        legend.position = "bottom")
-
-#STLF Forecasting
-STLF.monthly = gso.fire.ts.2 %>%
-  stlf(lambda = 0, h = 23, level=c(80,95)) 
-STLF.monthly %>%
-  autoplot() + 
-  ggtitle("STLF Model for Monthly Number of Fire Incidents") +
-  xlab("Date") +
-  ylab("Fire Incidents") + 
-  coord_cartesian(xlim = c(2022, 2023)) +
-  theme(axis.text.x = element_text(angle = 90))
 
 ########
 #Multi-Step Forecasting
@@ -622,13 +599,13 @@ dif.train.fc = forecast(dif.daily.train.tbats.2, h=151)
 dYhat.tbats = dif.train.fc$mean
 
 #setting up normal ts training and test sets 
-y.2 <- msts(gso.fire.ts.2, seasonal.periods=c(7,365.25))
-training.tbats.2 <- subset(y.2, end=length(y.2)-151)
-test.tbats.2 <- subset(y.2, start=length(y.2)-150)
+y.2 = msts(gso.fire.ts.2, seasonal.periods=c(7,365.25))
+training.tbats.2 = subset(y.2, end=length(y.2)-151)
+test.tbats.2 = subset(y.2, start=length(y.2)-150)
 
 #reverting back to original points   
-Yhat.tbats <- cumsum(c(training.tbats.2[length(training.tbats.2)], dYhat.tbats))
-Yhat.tbats <- ts(Yhat.tbats, start = c(2022, 1), frequency = 365)
+Yhat.tbats = cumsum(c(training.tbats.2[length(training.tbats.2)], dYhat.tbats))
+Yhat.tbats = ts(Yhat.tbats, start = c(2022, 1), frequency = 365)
 
 autoplot(training.tbats.2) + 
   autolayer(Yhat.tbats, series="Point Forecasts") + 
@@ -639,10 +616,112 @@ autoplot(training.tbats.2) +
   coord_cartesian(xlim = c(2020, 2023)) +
   theme(legend.position = "bottom")
 
-dif_crashes.test_TBATS2 <- tbats(dif_test_TBATS2)
-accuracy(dif_crashes.test_TBATS2)
+dif.daily.test.tbats.2 = tbats(dif.test.tbats.2)
+accuracy(dif.daily.test.tbats.2)
 
+#multi-step ARIMA forecast for daily data
+training.arima = subset(gso.fire.ts.2, end=length(gso.fire.ts.2)-151)
+test.arima = subset(gso.fire.ts.2, start=length(gso.fire.ts.2)-150)
+daily.train.arima = auto.arima(training.arima)
+fc.train.arima = forecast(daily.train.arima, h=151)
 
+autoplot(fc.train.arima) + 
+  autolayer(test.arima, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Daily Forecasts of Number of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  theme(legend.position = "bottom")
+
+daily.test.arima = arima(test.arima)
+accuracy(daily.test.arima)
+
+#time series combination
+train = window(gso.fire.ts.2, end=c(2019, 12))
+h = length(gso.fire.ts.2) - length(train)
+
+#ARIMA model 
+ARIMA = forecast::forecast(auto.arima(train, lambda=0, biasadj=TRUE), h=h)
+
+#TBATS model 
+train.tbats = msts(gso.fire.ts.2.dif, end=c(2019,12), seasonal.periods = c(7,365.25))
+TBATS = forecast::forecast(tbats(train.tbats, biasadj = TRUE), h=h)
+dYhat.combo = TBATS$mean
+
+Yhat.combo = cumsum(c(train[length(train)], dYhat.combo))
+Yhat.combo = ts(Yhat.combo, start = c(2019, 12), frequency = 365)
+Combination = (ARIMA[["mean"]] + Yhat.combo)/2
+true.daily = gso.fire.ts %>%
+  filter(AlarmDate2 >= as.Date("2019/12/01") & AlarmDate2 <= as.Date("2021/05/31"))
+true.daily.ts = ts(true.daily$n, 
+                            start = c(2019,12), end = c(2021,153), 
+                            frequency = 365)
+
+autoplot(train) +
+  autolayer(true.daily.ts) +
+  autolayer(Combination, series="Combination", alpha=0.8) +
+  autolayer(ARIMA, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo, series="TBATS", alpha=0.7) +
+  xlab("Date") +
+  ylab("Fire Incidents") +
+  ggtitle("Time Series Combination for daily number of fire incidents") + 
+  theme(legend.position = "bottom")
+
+c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo, gso.fire.ts.2)["Test set", "RMSE"],
+  Combination =
+    accuracy(Combination, gso.fire.ts.2)["Test set", "RMSE"])
+
+######
+#multi-step forecasting fore monthly data
+
+#multi-step TBATS
+
+y2.dif.monthly = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
+dif.training.tbats.2.monthly = subset(y2.dif.monthly, end=length(y2.dif.monthly)-5)
+dif.test.tbats.2.monthly = subset(y2.dif.monthly, start=length(y2.dif.monthly)-4)
+dif.train.tbats.2.monthly = tbats(dif.training.tbats.2.monthly)
+dif.fc.train.tbats.2.monthly = forecast(dif.train.tbats.2.monthly, h=5)
+dYhat.ms.tbats.monthly = dif.fc.train.tbats.2.monthly$mean
+y2.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
+training.tbats.monthly.2 = subset(y2.monthly, end=length(y2.monthly)-5)
+test.tbats.monthly.2 = subset(y2.monthly, start=length(y2.monthly)-4)
+
+Yhat.ms.tbats.monthly = cumsum(c(training.tbats.monthly.2[length(training.tbats.monthly.2)],
+                                 dYhat.ms.tbats.monthly))
+Yhat.ms.tbats.monthly = ts(Yhat.ms.tbats.monthly, start = c(2022,01), frequency=12)
+
+autoplot(training.tbats.monthly.2) + 
+  autolayer(Yhat.ms.tbats.monthly, series="Point Forecasts") + 
+  autolayer(test.tbats.monthly.2, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step TBATS Monthly Forecasts of Number of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Fire INcidents") + 
+  theme(legend.position = "bottom", title=element_text(size=10)) + 
+  theme(axis.text.x = element_text(angle = 90))
+
+dif.test.tbats.2.monthly = tbats(dif.test.tbats.2.monthly)
+accuracy(dif.test.tbats.2.monthly)
+
+#multi-step ARIMA
+training.arima.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test_arima_monthly <- subset(crashes_mts4, start=length(crashes_mts4)-4)
+crashes.train_arima_monthly <- auto.arima(training_arima_monthly)
+fc_train_arima_monthly <- forecast(crashes.train_arima_monthly, h=5)
+autoplot(fc_train_arima_monthly) + 
+  autolayer(test_arima_monthly, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Monthly Forecasts of Crashes (With Pandemic Data)") + 
+  xlab("Date") + ylab("Crashes") + 
+  theme(legend.position = "bottom") + 
+  scale_x_continuous(breaks = c(1,2,3,4,5,6,7, 8), 
+                     labels = c("Jan 2015", "Jan 2016", "Jan 2017", "Jan 2018", 
+                                "Jan 2019", "Jan 2020", "Jan 2021", "Jan 2022")) + 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
+        legend.position = "bottom")
+crashes.test_arima_monthly <- arima(test_arima_monthly)
+accuracy(crashes.test_arima_monthly)
+
+#######
 #Modeling of Response Time
 
 #Filtering data
