@@ -564,7 +564,7 @@ cbind("Fire Incidents" = gso.fire.ts.2,
       "First differenced" = diff(gso.fire.ts.2)) %>%
   autoplot(facets=TRUE) +
   xlab("Date") + ylab("") +
-  ggtitle("Stationarity Transformations of Daily Fire Incidents")
+  ggtitle("Stationarity Transformations of Daily Frequency of Fire Incidents")
 ```
 
 The plot above shows the daily time series graph before and after the first difference was calculated.
@@ -579,31 +579,32 @@ daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
 
 #point forecast values
 dif.Yhat = daily.dif.tbats.fc$mean
-dif.Yhat.upper <- daily.dif.tbats.fc$upper
-dif.Yhat.lower <- daily.dif.tbats.fc$lower
+dif.Yhat.upper = daily.dif.tbats.fc$upper
+dif.Yhat.lower = daily.dif.tbats.fc$lower
 
-Yhat <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
-Yhat <- ts(Yhat, start = c(2022, 152), frequency=365)
-Yhat_upper <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
-Yhat_upper <- ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
-Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
-Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+Yhat = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
+Yhat = ts(Yhat, start = c(2022, 152), frequency=365)
+Yhat_upper = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
+Yhat_upper = ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
+Yhat_lower = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
+Yhat_lower = ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
 
-fire.ts <- ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
+fire.ts = ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
               frequency = 360) # A 360 day trim to see forecast better
 
 #TBAT forecasting
 autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
-  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
-  xlab("Date") + ylab("Fire Incidents") + 
+  ggtitle("TBATS Forecasting Model for Daily Frequency of Fire Incidents") +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
 
 ```
 
 ```{r, echo=FALSE}
 #checking accuracy
-accuracy(daily.dif.tbats.3)
+accuracy(daily.dif.tbats)
 ```
 
 
@@ -614,19 +615,19 @@ For the plot above, we used the whole data set, from July 1, 2010 to May 31, 202
 
 ```{r, echo=FALSE}
 #ARIMA forecasting
-daily.arima <- auto.arima(gso.fire.ts.2)
-daily.arima.fc <- forecast(daily.arima, h=214)
+daily.arima = auto.arima(gso.fire.ts.2)
+daily.arima.fc = forecast(daily.arima, h=214)
 autoplot(daily.arima.fc) +
-  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  ggtitle("ARIMA Forecasting Model for Daily Frequency of Fire Incidents") +
   xlab("Date") + 
   coord_cartesian(xlim = c(2020, 2023)) +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   theme(title = element_text(size = 10))
 ```
 
 ```{r, echo=FALSE}
 #checking accuracy
-accuracy(daily.arima.3)
+accuracy(daily.arima)
 ```
 
 
@@ -656,10 +657,15 @@ gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
 autoplot(gso.fire.ts.3) + 
   autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
   autolayer(Yhat.3, alpha=0.6, series="Point Forecasts") + 
-  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  ggtitle("TBATS Forecasting Model for Daily Frequency of Fire Incidents") +
   xlab("Date") +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(daily.dif.tbats.3)
 ```
 
 In the plot above we can see that the TBATS model(light red) did not follow the true number of fire incidents(light blue). This appears to be because the data end three months earlier at March 1, 2022 to see how the predictions would appear. So around that time period there were some drastic drops in number of fire incidents which led to the TBATS model forecasting such a severe drop in incidents.
@@ -669,11 +675,16 @@ In the plot above we can see that the TBATS model(light red) did not follow the 
 daily.arima.3 = auto.arima(gso.fire.ts.3)
 daily.arima.fc.3 = forecast(daily.arima.3, h=671)
 autoplot(daily.arima.fc.3) + 
-  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  ggtitle("ARIMA Forecasting Model for Daily Frequency of Fire Incidents") +
   xlab("Date") +
   coord_cartesian(xlim = c(2020, 2023)) +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   theme(title = element_text(size = 10))
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(daily.arima.3)
 ```
 
 From the plot above, there was an increase briefly and then the forecast created a horizontal line. Plus, the horizontal line appears to be close to the average line of the data. So when ended the data set three months earlier the ARIMA model did better than the TBATS for predicting number of future fire incidents.
@@ -708,7 +719,7 @@ cbind("Fire Incidents" = gso.fire.ts.month.2,
       "First differenced" = diff(gso.fire.ts.month.2)) %>%
   autoplot(facets=TRUE) +
   xlab("Date") + ylab("") +
-  ggtitle("Stationarity Transformation of Monthly Fire Incidents")
+  ggtitle("Stationarity Transformation of Monthly Frequency of Fire Incidents")
 ```
 
 The plot above shows the monthly time series graph before and after the first difference was calculated.
@@ -717,12 +728,12 @@ Now that the monthly data is stationary we can being forecasting.
 
 ```{r, echo=FALSE}
 y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
-daily.dif.tbats.month = tbats(y.dif.month)
-daily.dif.tbats.month.fc = forecast::forecast(daily.dif.tbats.month, h = 8)
+dif.tbats.month = tbats(y.dif.month)
+dif.tbats.month.fc = forecast::forecast(dif.tbats.month, h = 8)
 
 
 #point forecast values
-dif.Yhat.month = daily.dif.tbats.month.fc$mean
+dif.Yhat.month = dif.tbats.month.fc$mean
 
 Yhat.month = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dif.Yhat.month))
 Yhat.month = ts(Yhat.month, start = c(2022, 05), frequency=12)
@@ -730,25 +741,35 @@ Yhat.month = ts(Yhat.month, start = c(2022, 05), frequency=12)
 #TBATS forecasting
 autoplot(gso.fire.ts.month.2) + 
   autolayer(Yhat.month, series="Point Forecasts") + 
-  ggtitle("TBATS Forecasting Model for Monthly Number of Fire Incidents") +
+  ggtitle("TBATS Forecasting Model for Monthly Frequency of Fire Incidents") +
   xlab("Date") +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   theme(axis.text.x = element_text(angle = 90), title = element_text(size=10), 
         legend.position = "bottom") 
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(dif.tbats.month)
 ```
 
 From the time series plot above, the TBATS model (red line) shows an increase for the future number of fire incidents. The line appears to fit fairly well with the trend of the data.
 
 ```{r, echo=FALSE}
 #ARIMA forecasting
-monthly.arima <- auto.arima(gso.fire.ts.month.2)
-monthly.arima.fc <- forecast(monthly.arima, h=8)
+monthly.arima = auto.arima(gso.fire.ts.month.2)
+monthly.arima.fc = forecast(monthly.arima, h=8)
 autoplot(monthly.arima.fc) +
-  ggtitle("ARIMA Forecasting Model for Monthly Number of Fire Incidents") +
+  ggtitle("ARIMA Forecasting Model for Monthly Frequency of Fire Incidents") +
   xlab("Date") + 
   coord_cartesian(xlim = c(2020, 2023)) +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   theme(title = element_text(size = 10))
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(monthly.arima)
 ```
 
 In the plot above, it can be seen that the ARIMA model was producing similar spikes compared to the TBATS model and had done a fairly good job.
@@ -764,11 +785,16 @@ Yhat.Holt <- ts(Yhat.Holt, start = c(2022, 05), frequency=12)
 
 autoplot(gso.fire.ts.month.2) +
   autolayer(Yhat.Holt, series = "Point Forecasts") +
-  ggtitle("Forecasts of Monthly Number of Fire Incidents using HoltWinters") +
+  ggtitle("Forecasts of Monthly Frequency of Fire Incidents using HoltWinters") +
   xlab("Date") +
-  ylab("Fire Incidents") +
+  ylab("Frequency of Fire Incidents") +
   theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
         legend.position = "bottom")
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(dif.fcast.monthly)
 ```
 
 As seen above, the HoltWinters model predicted much larger spikes upwards compared to the TBATS model. As a result, with such a drastic increase it is likely it would be less accurate than the TBATS model for this data.
@@ -798,9 +824,9 @@ Yhat.tbats <- ts(Yhat.tbats, start = c(2022, 1), frequency = 365)
 autoplot(training.tbats.2) + 
   autolayer(Yhat.tbats, series="Point Forecasts") + 
   autolayer(test.tbats.2, series="Test Set", alpha = 0.7) + 
-  ggtitle("Multi-Step TBATS Daily Forecasts of Number of Fire Incidents") + 
+  ggtitle("Multi-Step TBATS Daily Forecasts of Frequency of Fire Incidents") + 
   xlab("Date") +
-  ylab("Fire Incidents") +
+  ylab("Frequency of Fire Incidents") +
   coord_cartesian(xlim = c(2020, 2023)) +
   theme(legend.position = "bottom")
 
@@ -823,9 +849,9 @@ fc.train.arima = forecast(daily.train.arima, h=151)
 
 autoplot(fc.train.arima) + 
   autolayer(test.arima, series="Test Set", alpha = 0.7) + 
-  ggtitle("Multi-Step ARIMA Daily Forecasts of Number of Fire Incidents") + 
+  ggtitle("Multi-Step ARIMA Daily Forecasts of Frequency of Fire Incidents") + 
   xlab("Date") +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   coord_cartesian(xlim = c(2020, 2023)) +
   theme(legend.position = "bottom")
 
@@ -861,8 +887,8 @@ autoplot(train) +
   autolayer(ARIMA, series="ARIMA", PI=F) +
   autolayer(Yhat.combo, series="TBATS", alpha=0.7) +
   xlab("Date") +
-  ylab("Fire Incidents") +
-  ggtitle("Time Series Combination for daily number of fire incidents") + 
+  ylab("Frequency of Fire Incidents") +
+  ggtitle("Time Series Combination for Daily Frequency of Fire Incidents") + 
   theme(legend.position = "bottom")
 
 c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
@@ -892,9 +918,9 @@ Yhat.ms.tbats.monthly = ts(Yhat.ms.tbats.monthly, start = c(2022,01), frequency=
 autoplot(training.tbats.monthly.2) + 
   autolayer(Yhat.ms.tbats.monthly, series="Point Forecasts") + 
   autolayer(test.tbats.monthly.2, series="Test Set", alpha = 0.7) + 
-  ggtitle("Multi-Step TBATS Monthly Forecasts of Number of Fire Incidents") + 
+  ggtitle("Multi-Step TBATS Monthly Forecasts of Frequency of Fire Incidents") + 
   xlab("Date") +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   theme(legend.position = "bottom", title=element_text(size=10)) + 
   theme(axis.text.x = element_text(angle = 90))
 ```
@@ -913,9 +939,9 @@ fc.train.arima.monthly = forecast(train.arima.monthly.3, h=5)
 
 autoplot(fc.train.arima.monthly) + 
   autolayer(test.arima.monthly, series="Test Set", alpha = 0.7) + 
-  ggtitle("Multi-Step ARIMA Monthly Forecasts of Number of Fire Incidents") + 
+  ggtitle("Multi-Step ARIMA Monthly Forecasts of Frequency of Fire Incidents") + 
   xlab("Date") +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   coord_cartesian(xlim = c(2018, 2023)) +
   theme(legend.position = "bottom") + 
   theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
@@ -991,7 +1017,7 @@ autoplot(train.monthly) +
   autolayer(Yhat.HW.monthly, series="HoltWinters", alpha=0.7) + 
   xlab("Date") +
   ylab("Frequency of Fire Incidents") +
-  ggtitle("Time Series Combination for monthly frequency of fire incidents") + 
+  ggtitle("Time Series Combination for Monthly Frequency of Fire Incidents") + 
   theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
         title = element_text(size = 9)) 
 
