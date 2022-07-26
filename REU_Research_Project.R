@@ -488,10 +488,13 @@ gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
 autoplot(gso.fire.ts.3) + 
   autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
   autolayer(Yhat.3, alpha=0.6, series="Point Forecasts") + 
-  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  ggtitle("TBATS Forecasting Model for Daily Frequency of Fire Incidents") +
   xlab("Date") +
-  ylab("Fire Incidents") + 
+  ylab("Frequency of Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
+
+#checking accuracy
+accuracy(daily.dif.tbats.3)
 
 #ARIMA forecasting
 daily.arima.3 = auto.arima(gso.fire.ts.3)
@@ -502,6 +505,9 @@ autoplot(daily.arima.fc.3) +
   coord_cartesian(xlim = c(2020, 2023)) +
   ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
+
+#checking accuracy
+accuracy(daily.arima.3)
 
 #Forecasting for monthly number of Fire Incidents
 
@@ -673,16 +679,16 @@ c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
     accuracy(Combination, gso.fire.ts.2)["Test set", "RMSE"])
 
 ######
-#multi-step forecasting fore monthly data
+#multi-step forecasting for monthly data
 
 #multi-step TBATS
-
 y2.dif.monthly = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
 dif.training.tbats.2.monthly = subset(y2.dif.monthly, end=length(y2.dif.monthly)-5)
 dif.test.tbats.2.monthly = subset(y2.dif.monthly, start=length(y2.dif.monthly)-4)
 dif.train.tbats.2.monthly = tbats(dif.training.tbats.2.monthly)
 dif.fc.train.tbats.2.monthly = forecast(dif.train.tbats.2.monthly, h=5)
 dYhat.ms.tbats.monthly = dif.fc.train.tbats.2.monthly$mean
+
 y2.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
 training.tbats.monthly.2 = subset(y2.monthly, end=length(y2.monthly)-5)
 test.tbats.monthly.2 = subset(y2.monthly, start=length(y2.monthly)-4)
@@ -696,7 +702,7 @@ autoplot(training.tbats.monthly.2) +
   autolayer(test.tbats.monthly.2, series="Test Set", alpha = 0.7) + 
   ggtitle("Multi-Step TBATS Monthly Forecasts of Number of Fire Incidents") + 
   xlab("Date") +
-  ylab("Fire INcidents") + 
+  ylab("Fire Incidents") + 
   theme(legend.position = "bottom", title=element_text(size=10)) + 
   theme(axis.text.x = element_text(angle = 90))
 
@@ -705,21 +711,91 @@ accuracy(dif.test.tbats.2.monthly)
 
 #multi-step ARIMA
 training.arima.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
-test_arima_monthly <- subset(crashes_mts4, start=length(crashes_mts4)-4)
-crashes.train_arima_monthly <- auto.arima(training_arima_monthly)
-fc_train_arima_monthly <- forecast(crashes.train_arima_monthly, h=5)
-autoplot(fc_train_arima_monthly) + 
-  autolayer(test_arima_monthly, series="Test Set", alpha = 0.7) + 
-  ggtitle("Multi-Step ARIMA Monthly Forecasts of Crashes (With Pandemic Data)") + 
-  xlab("Date") + ylab("Crashes") + 
+test.arima.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+train.arima.monthly.3 = auto.arima(training.arima.monthly)
+fc.train.arima.monthly = forecast(train.arima.monthly.3, h=5)
+
+autoplot(fc.train.arima.monthly) + 
+  autolayer(test.arima.monthly, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Monthly Forecasts of Number of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  coord_cartesian(xlim = c(2018, 2023)) +
   theme(legend.position = "bottom") + 
-  scale_x_continuous(breaks = c(1,2,3,4,5,6,7, 8), 
-                     labels = c("Jan 2015", "Jan 2016", "Jan 2017", "Jan 2018", 
-                                "Jan 2019", "Jan 2020", "Jan 2021", "Jan 2022")) + 
   theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
         legend.position = "bottom")
-crashes.test_arima_monthly <- arima(test_arima_monthly)
-accuracy(crashes.test_arima_monthly)
+
+test.arima.monthly.3 = arima(test.arima.monthly)
+accuracy(test.arima.monthly.3)
+
+#multi-step HoltWinters
+dif.training.HW.monthly = subset(gso.fire.ts.month.2.dif, end=length(gso.fire.ts.month.2.dif)-5)
+dif.test.HW.monthly = subset(gso.fire.ts.month.2.dif, start=length(gso.fire.ts.month.2.dif)-4)
+dif.train.HW.monthly = HoltWinters(dif.training.HW.monthly)
+dif.fc.HW = forecast::forecast(dif.train.HW.monthly, h=5)
+
+dYhat.ms.HW = dif.fc.HW$mean
+Yhat.ms.HW = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.ms.HW))
+Yhat.ms.HW = ts(Yhat.ms.HW, start = c(2022,01,01), frequency=12)
+
+training.HW.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test.HW.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+true.count.monthly = ts(gso.fire.ts.month.2, start=c(2010,07,01), end=c(2021,12,31), frequency=12)
+
+autoplot(training.HW.monthly) + 
+  autolayer(Yhat.ms.HW, series = "Point Forecasts") + 
+  autolayer(test.HW.monthly, series = "Test Set") + 
+  ggtitle("Multi-Step HoltWinters Monthly Forecasts of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9))
+
+accuracy(Yhat.ms.HW, gso.fire.ts.month.2)
+
+#Time series combination for monthly
+train.monthly = window(gso.fire.ts.month.2, end=c(2019, 12))
+h.monthly = length(gso.fire.ts.month.2) - length(train.monthly)
+
+#ARIMA model 
+ARIMA.monthly = forecast::forecast(auto.arima(train.monthly, lambda=0, biasadj=TRUE),
+                                   h=h.monthly)
+
+#TBATS model 
+train.tbats.monthly = msts(gso.fire.ts.month.2.dif, end=c(2019,12), seasonal.periods = 12)
+tbats.monthly = forecast::forecast(tbats(train.tbats.monthly, biasadj = TRUE), h=h.monthly)
+dYhat.combo.monthly = tbats.monthly$mean
+
+Yhat.combo.monthly = cumsum(c(train.monthly[length(train.monthly)], dYhat.combo.monthly))
+Yhat.combo.monthly = ts(Yhat.combo.monthly, start = c(2019,12), frequency = 12)
+
+#HoltWinters Model 
+HW.monthly = forecast::forecast(HoltWinters(gso.fire.ts.month.2.dif), h=h.monthly)
+
+dYhat.HW.monthly = HW.monthly$mean
+
+Yhat.HW.monthly = cumsum(c(train.monthly[length(train.monthly)],dYhat.HW.monthly))
+Yhat.HW.monthly = ts(Yhat.HW.monthly, start = c(2019,12), frequency=12)
+Combination.monthly = (ARIMA.monthly[["mean"]] + Yhat.combo.monthly + Yhat.HW.monthly)/3
+true.count.monthly = ts(gso.fire.ts.month.2, start=c(2019,12), end=c(2022,05), frequency=12)
+
+autoplot(train.monthly) +
+  autolayer(true.count.monthly, series="True Count") + 
+  autolayer(Combination.monthly, series="Combination", alpha=0.8) +
+  autolayer(ARIMA.monthly, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo.monthly, series="TBATS", alpha=0.7) +
+  autolayer(Yhat.HW.monthly, series="HoltWinters", alpha=0.7) + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  ggtitle("Time Series Combination for monthly frequency of fire incidents") + 
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9)) 
+
+c(ARIMA = accuracy(ARIMA.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
+  HW = accuracy(Yhat.HW.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
+  Combination =
+    accuracy(Combination.monthly, gso.fire.ts.month.2)["Test set", "RMSE"])
 
 #######
 #Modeling of Response Time
@@ -750,7 +826,7 @@ las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_
 plot(las.Mod)
 
 
-#Random Forrest with ranger functiom
+#Random Forrest with ranger function
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
            shift , Month , AlarmTime , NatureCode)

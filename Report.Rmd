@@ -40,11 +40,11 @@ https://ieeexplore.ieee.org/document/9060320
 
 https://ieeexplore.ieee.org/abstract/document/7046087
 
-Prior to beginning this study we sought the obtain as much knowledge from previous similar reports as possible. In this process we were able to acquire multiple different reports from a variety of different topics ranging from forecasting mass fires to observing response time. Although multiple studies have sought to capture the analytics behind many different aspects in regards to fire incidents, not many have gone completely in-depth in terms of covering fully what factors can affect fire service response time, analyzing how response time affects other factors like property loss and civilian injuries, and building a sufficient forecasting model for a given Fire Department to help better enhance their levels of service. In this report we aim to completely cover all given factors that may effect fire service response time and how response time effects the rate of total loss in Greensboro, NC. Additionally, to help the Greensboro Fire Departments be better prepared for dealing with future fire incidents in the city, we will build time series models to forecast the future daily/weekly number of fire incidents in the city.
+Prior to beginning this study we sought to obtain as much knowledge from previous similar reports as possible. In this process we were able to acquire multiple different reports from a variety of different topics ranging from forecasting mass fires to observing response time. Although multiple studies have sought to capture the analytics behind many different aspects in regards to fire incidents, not many have gone completely in-depth in terms of covering fully what factors can affect fire service response time, analyzing how response time affects other factors like property loss and civilian injuries, and building a sufficient forecasting model for a given Fire Department to help better enhance their levels of service. In this report we aim to completely cover all given factors that may effect fire service response time and how response time effects the rate of total loss in Greensboro, NC. Additionally, to help the Greensboro Fire Departments be better prepared for dealing with future fire incidents in the city, we will build time series models to forecast the future daily/weekly number of fire incidents in the city.
 
 
 
-## Data, Method, and Analysis
+## Data, Methods, and Analysis
 
 ### Data
 For this analysis, we utilized public data from the Greensboro Fire Department. This data set accounts for all reported fire incidents in the city of Greensboro from July 1st of 2010 to June 1st of 2022. Although, we noticed there were some missing values in the data. So we did a map to check the percentage of missing values and it ended being about 14 percent for the whole data set.
@@ -601,6 +601,12 @@ autoplot(fire.ts) +
 
 ```
 
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(daily.dif.tbats.3)
+```
+
+
 We used the Exponential smoothing state space model with Box-Cox transformation, ARMA errors, Trend and Seasonal components (TBATS model) because it is a popular model that tends to perform well at forecasting time series.
 
 For the plot above, we used the whole data set, from July 1, 2010 to May 31, 2022. We planned to forecast the fire incidents from June 1, 2010 to December 31, 2022. From the plot we can see that the TBATS was doing well, it seemed to predict a slow big dip that would eventually start going up again before 2022 ended. The dip though seems to go below the average at one point.
@@ -617,6 +623,12 @@ autoplot(daily.arima.fc) +
   ylab("Fire Incidents") + 
   theme(title = element_text(size = 10))
 ```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(daily.arima.3)
+```
+
 
 We also chose the Autoregressive Integrated Moving Average (ARIMA) model because it has been known to perform competently. Compared to the TBATS model, the ARIMA automatically calculates the differences, so those don't have to be done manually.
 
@@ -822,6 +834,27 @@ accuracy(daily.test.arima)
 ```
 
 ```{r, echo=FALSE}
+#time series combination
+train = window(gso.fire.ts.2, end=c(2019, 12))
+h = length(gso.fire.ts.2) - length(train)
+
+#ARIMA model 
+ARIMA = forecast::forecast(auto.arima(train, lambda=0, biasadj=TRUE), h=h)
+
+#TBATS model 
+train.tbats = msts(gso.fire.ts.2.dif, end=c(2019,12), seasonal.periods = c(7,365.25))
+TBATS = forecast::forecast(tbats(train.tbats, biasadj = TRUE), h=h)
+dYhat.combo = TBATS$mean
+
+Yhat.combo = cumsum(c(train[length(train)], dYhat.combo))
+Yhat.combo = ts(Yhat.combo, start = c(2019, 12), frequency = 365)
+Combination = (ARIMA[["mean"]] + Yhat.combo)/2
+true.daily = gso.fire.ts %>%
+  filter(AlarmDate2 >= as.Date("2019/12/01") & AlarmDate2 <= as.Date("2021/05/31"))
+true.daily.ts = ts(true.daily$n, 
+                            start = c(2019,12), end = c(2021,153), 
+                            frequency = 365)
+
 autoplot(train) +
   autolayer(true.daily.ts) +
   autolayer(Combination, series="Combination", alpha=0.8) +
@@ -836,6 +869,137 @@ c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
   TBATS = accuracy(Yhat.combo, gso.fire.ts.2)["Test set", "RMSE"],
   Combination =
     accuracy(Combination, gso.fire.ts.2)["Test set", "RMSE"])
+```
+
+```{r, echo=FALSE}
+#multi-step forecasting for monthly data
+
+#multi-step TBATS
+y2.dif.monthly = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
+dif.training.tbats.2.monthly = subset(y2.dif.monthly, end=length(y2.dif.monthly)-5)
+dif.test.tbats.2.monthly = subset(y2.dif.monthly, start=length(y2.dif.monthly)-4)
+dif.train.tbats.2.monthly = tbats(dif.training.tbats.2.monthly)
+dif.fc.train.tbats.2.monthly = forecast(dif.train.tbats.2.monthly, h=5)
+dYhat.ms.tbats.monthly = dif.fc.train.tbats.2.monthly$mean
+y2.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
+training.tbats.monthly.2 = subset(y2.monthly, end=length(y2.monthly)-5)
+test.tbats.monthly.2 = subset(y2.monthly, start=length(y2.monthly)-4)
+
+Yhat.ms.tbats.monthly = cumsum(c(training.tbats.monthly.2[length(training.tbats.monthly.2)],
+                                 dYhat.ms.tbats.monthly))
+Yhat.ms.tbats.monthly = ts(Yhat.ms.tbats.monthly, start = c(2022,01), frequency=12)
+
+autoplot(training.tbats.monthly.2) + 
+  autolayer(Yhat.ms.tbats.monthly, series="Point Forecasts") + 
+  autolayer(test.tbats.monthly.2, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step TBATS Monthly Forecasts of Number of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  theme(legend.position = "bottom", title=element_text(size=10)) + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r, echo=FALSE}
+dif.test.tbats.2.monthly = tbats(dif.test.tbats.2.monthly)
+accuracy(dif.test.tbats.2.monthly)
+```
+
+```{r, echo=FALSE}
+#multi-step ARIMA
+training.arima.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test.arima.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+train.arima.monthly.3 = auto.arima(training.arima.monthly)
+fc.train.arima.monthly = forecast(train.arima.monthly.3, h=5)
+
+autoplot(fc.train.arima.monthly) + 
+  autolayer(test.arima.monthly, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Monthly Forecasts of Number of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  coord_cartesian(xlim = c(2018, 2023)) +
+  theme(legend.position = "bottom") + 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
+        legend.position = "bottom")
+```
+
+```{r, echo=FALSE}
+test.arima.monthly.3 = arima(test.arima.monthly)
+accuracy(test.arima.monthly.3)
+```
+
+```{r, echo=FALSE}
+#multi-step HoltWinters
+dif.training.HW.monthly = subset(gso.fire.ts.month.2.dif, end=length(gso.fire.ts.month.2.dif)-5)
+dif.test.HW.monthly = subset(gso.fire.ts.month.2.dif, start=length(gso.fire.ts.month.2.dif)-4)
+dif.train.HW.monthly = HoltWinters(dif.training.HW.monthly)
+dif.fc.HW = forecast::forecast(dif.train.HW.monthly, h=5)
+
+dYhat.ms.HW = dif.fc.HW$mean
+Yhat.ms.HW = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.ms.HW))
+Yhat.ms.HW = ts(Yhat.ms.HW, start = c(2022,01,01), frequency=12)
+
+training.HW.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test.HW.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+true.count.monthly = ts(gso.fire.ts.month.2, start=c(2010,07,01), end=c(2021,12,31), frequency=12)
+
+autoplot(training.HW.monthly) + 
+  autolayer(Yhat.ms.HW, series = "Point Forecasts") + 
+  autolayer(test.HW.monthly, series = "Test Set") + 
+  ggtitle("Multi-Step HoltWinters Monthly Forecasts of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9))
+```
+
+```{r, echo=FALSE}
+accuracy(Yhat.ms.HW, gso.fire.ts.month.2)
+```
+
+```{r, echo=FALSE}
+#Time series combination for monthly
+train.monthly = window(gso.fire.ts.month.2, end=c(2019, 12))
+h.monthly = length(gso.fire.ts.month.2) - length(train.monthly)
+
+#ARIMA model 
+ARIMA.monthly = forecast::forecast(auto.arima(train.monthly, lambda=0, biasadj=TRUE),
+                                   h=h.monthly)
+
+#TBATS model 
+train.tbats.monthly = msts(gso.fire.ts.month.2.dif, end=c(2019,12), seasonal.periods = 12)
+tbats.monthly = forecast::forecast(tbats(train.tbats.monthly, biasadj = TRUE), h=h.monthly)
+dYhat.combo.monthly = tbats.monthly$mean
+
+Yhat.combo.monthly = cumsum(c(train.monthly[length(train.monthly)], dYhat.combo.monthly))
+Yhat.combo.monthly = ts(Yhat.combo.monthly, start = c(2019,12), frequency = 12)
+
+#HoltWinters Model 
+HW.monthly = forecast::forecast(HoltWinters(gso.fire.ts.month.2.dif), h=h.monthly)
+
+dYhat.HW.monthly = HW.monthly$mean
+
+Yhat.HW.monthly = cumsum(c(train.monthly[length(train.monthly)],dYhat.HW.monthly))
+Yhat.HW.monthly = ts(Yhat.HW.monthly, start = c(2019,12), frequency=12)
+Combination.monthly = (ARIMA.monthly[["mean"]] + Yhat.combo.monthly + Yhat.HW.monthly)/3
+true.count.monthly = ts(gso.fire.ts.month.2, start=c(2019,12), end=c(2022,05), frequency=12)
+
+autoplot(train.monthly) +
+  autolayer(true.count.monthly, series="True Count") + 
+  autolayer(Combination.monthly, series="Combination", alpha=0.8) +
+  autolayer(ARIMA.monthly, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo.monthly, series="TBATS", alpha=0.7) +
+  autolayer(Yhat.HW.monthly, series="HoltWinters", alpha=0.7) + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  ggtitle("Time Series Combination for monthly frequency of fire incidents") + 
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9)) 
+
+c(ARIMA = accuracy(ARIMA.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
+  HW = accuracy(Yhat.HW.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
+  Combination =
+    accuracy(Combination.monthly, gso.fire.ts.month.2)["Test set", "RMSE"])
 ```
 
 
