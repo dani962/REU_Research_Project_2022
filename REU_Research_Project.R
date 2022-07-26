@@ -73,6 +73,43 @@ gso.fire %>%
   ggtitle("Distribution of Response Time") +
   theme_economist()
 
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = CivilianInjuries)) +
+  geom_histogram(binwidth = 0.2, color = "black", fill = "pink") +
+  xlab("Response Time (Seconds)") +
+  ylab("Count") +
+  ggtitle("Distribution of Civilian Injuries") +
+  theme_economist()
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalStaffOnIncident)) +
+  geom_histogram(show.legend = FALSE, color = "black", fill = "pink") +
+  xlab("Total Staff on Incident") +
+  ylab("Count") +
+  ggtitle("Distribution of Total Staff on Incident") +
+  theme_economist() +
+  xlim(0,25)
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = PropertyLoss)) +
+  geom_histogram(show.legend = FALSE, color = "black", fill = "pink") +
+  xlab("Property Loss") +
+  ylab("Count") +
+  ggtitle("Distribution of Property Loss") +
+  theme_economist() 
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalLosses)) +
+  geom_histogram(show.legend = FALSE, color = "black", fill = "pink") +
+  xlab("Total Loss") +
+  ylab("Count") +
+  ggtitle("Distribution of Total Loss") +
+  theme_economist() 
+
 #...
 #bar graphs
 #...
@@ -225,46 +262,23 @@ gso.fire %>%
   ggtitle("Total Staff on Incident vs Response Time") +
   theme_economist()
 
-#Scatter plot of Civilian Injuries vs Response Time
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = response_time_seconds, y = CivilianInjuries)) +
+  ggplot(aes(x = PropertyLoss, y = response_time_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  ylab("Civilian Injuries") +
-  xlab("Response Time (Seconds)") +
-  ggtitle("Civilian Injuries vs Response Time") +
-  theme_economist() 
-
-#Scatter Plot for Civilian Fatalities vs Response Time
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = response_time_seconds, y = CivilianFatalities)) +
-  geom_point(stat = "identity", show.legend = FALSE) +
-  ylab("Civilian Fatalities") +
-  xlab("Response Time (Seconds)") +
-  ggtitle("Civilian Fatalities vs Response Time") + 
+  xlab("Property Loss") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Property Loss vs Response Time") +
   theme_economist()
 
-#Scatter Plot for Fire Service Injuries vs Response Time
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = response_time_seconds, y = FireServiceInjuries)) +
+  ggplot(aes(x = TotalLosses, y = response_time_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  ylab("Fire Service Injuries") +
-  xlab("Response Time (Seconds)") +
-  ggtitle("Fire Service Injuries Injuries vs Response Time") +
+  xlab("Total Loss") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Total Loss vs Response Time") +
   theme_economist()
-
-#Scatter Plot for Fire Service Fatalities vs Response Time
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = response_time_seconds, y = FireServiceFatalities)) +
-  geom_point(stat = "identity", show.legend = FALSE) +
-  ylab("Fire Service Fatalities") +
-  xlab("Response Time (Seconds)") +
-  ggtitle("Fire Service Fatalities vs Response Time") +
-  theme_economist() 
-
 
 #...
 #combined box plot and violin plot
@@ -344,6 +358,33 @@ gso.fire %>%
   xlab("Number of Alarms") +
   ylab("Response Time (Seconds)") +
   ggtitle("Violin and Box Plot of Response Time Densities by Number of Alarms")
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = CivilianInjuries, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Civilian Injuries") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Civilian Injuries")
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = CivilianFatalities, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Civilian Fatalities") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Civilian Fatalities")
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = FireServiceInjuries, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Fire Service Injuries") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Fire Service Injuries")
 
 #Time Series
 
