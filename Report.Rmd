@@ -23,7 +23,7 @@ No matter the type of fire incident. It is vital that first responders attend to
 
 For more than ten years, the city of Greensboro, NC has been collecting data on fire incidents in their area. Some of this data includes the date of the incident, the response time, the location, and the type of property. Yet, take note when looking at the data that it goes from July 1, 2010, to May 31, 2022. So for the years 2010 and 2022, only data for about half of those years was collected.
 
-For this project we will be visualizing the fire incidents in Greensboro, NC. Our research questions are 1) What factors affect the response time to fire incidents? 2) How to improve the response time? 3) How does response time by fire emergency services affect the rate of total loss and civilian injuries? 4)Can we build models to forecast the number of fire incidents in certain areas of Greensboro based on the data from 2010 to 2022? 5) what Dynamic models can we make for forecasting fire incidents?
+For this project we will be visualizing the fire incidents in Greensboro, NC. Our research questions are 1) What factors affect the response time to fire incidents? 2) How to improve the response time? 3) How does response time by fire emergency services affect the rate of total loss and civilian injuries? 4)Can we build models to forecast the number of fire incidents in certain areas of Greensboro based on the data from 2010 to 2022? 5) What Dynamic models can we make for forecasting fire incidents?
 
 ## Related Literature
 Prior to beginning this study we sought to obtain as much knowledge from previous similar reports as possible. In this process we were able to acquire multiple different reports from a variety of similar topics ranging from forecasting mass fires to observing response time. With this, each report had its own distinct way of coming to a solution.
@@ -1163,11 +1163,14 @@ ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+
 For our random forest model we produced a bar graph to display the significance in each variable from a model we created using the Ranger() command. In this graph we are able to visually identify how much the models accuracy would be affected by each variable. After producing the bar plot we are able to see that Nature Code holds the most importance in relation to the model. 
 
 ## Conclusion
-Our extensive research has provided us with the ability to provide sufficient results for each of our research questions. Throughout this report we have worked on the public data set provided by the Greensboro Fire Department which holds all reported fire incidents in Greensboro, NC from 2010 to 2022. Firstly, to attack our research questions on the topics of analyzing response time and forecasting future fire incidents we explored our data set to great extent making multiple univariate and bivariate visualizations. We then followed this by using a variety of different forecasting and regression models in order to produce high accuracy results. 
 
-While identifying what factors effect fire service response time and how to improve fire service response time we first visualized the relationship between response time and each other tested variable. Through this we were able to decide which variables to apply towards a linear regression model in order to produce the level of significance that each variable holds in relation to response time. In our initial linear regression model we tested the variables; TotalStaffonIncident, FireDistrict, DayofWeek, shift, Month, AlarmTime, and NatureCode. We then used two different variable selection methods (Stepwise and LASSO) and analyzed results between the three models. Following the results from our linear regression models we ran a random forest model to display the significance that each given variable obtains. With our results from this process we were able to conclude that NatureCode followed by FireDistrict and AlarmTime held the most significance in relation to response time.
+Our extensive research has provided us with the ability to provide sufficient results for each of our research questions. Throughout this report, we have worked on the public data set provided by the Greensboro Fire Department which holds all reported fire incidents in Greensboro, NC from July 1, 2010, to May 31, 2022. Firstly, to attack our research questions on the topics of analyzing response time and forecasting future fire incidents we explored our data set to a great extent making multiple univariate and bivariate visualizations. We then followed this by using a variety of different forecasting and regression models to produce high-accuracy results.
 
-In regards to the affect response time has on total loss we were able to quickly identify this through our bivariate visualizations. In this process we compared the variables  PropertyLoss, TotalLosses, CivilianInjuries, CivilianFatalities, FireServiceInjuries, and FireServiceFatalities to response time and produced scatter plots and a combination of box and violin plots to visualize the relationship between the two. After making our property and total loss visualizations we were able to see not much in terms of significance between them and response time. Throughout the different distributions of response time both variables had seem to to linger around the middle. Contrary to belief, its safe to conclude that most of the time there is not much affect response time has on total and property loss. Obviously given the situation there are a good number of occasions were total and property loss are affected massively depending on the speed at which the fire service responds to the call. In regards to Civilian and Fire Service injuries and fatalities there was very little situations where either occurred across the data set. From our visualizations we can see that across the twelve years there has only been ten total civilian fatalities, two occasions where more than two civilians were reported injured, six occasions where more than one fire service injury occurred, and absolutely no fatalities within the fire department ever. Similar to total and property loss, our injury and fatality variables lingered around the middle of response time showing little to no correlation between the two. Again, it is safe to assume that given the situation the safety of civilians and fire service respondents can be heavily relied on response time. Through our results we were able to conclude not much significance in relationship between fire service response time and total loss. 
+While identifying what factors affect fire service response time and how to improve fire service response time, we first visualized the relationship between response time and every other tested variable. Through this, we were able to decide which variables to apply to a linear regression model to produce the level of significance that each variable holds with response time. In our initial linear regression model, we tested the variables; TotalStaffonIncident, FireDistrict, DayofWeek, shift, Month, AlarmTime, and NatureCode. We then used two different variable selection methods (Stepwise and LASSO) and analyzed the results between the three models. Following the results from our linear regression models, we ran a random forest model to display the significance that each given variable obtains. With our results from this process, we were able to conclude that NatureCode followed by FireDistrict and AlarmTime held the most significance in relation to response time.
+
+In regards to the effect response time has on the total loss we were able to quickly identify this through our bivariate visualizations. In this process, we compared the variables PropertyLoss, TotalLosses, CivilianInjuries, CivilianFatalities, FireServiceInjuries, and FireServiceFatalities to response time and produced scatter plots and a combination of box and violin plots to visualize the relationship between the two. After making our property and total loss visualizations we were able to see not much in terms of significance between them and response time. Throughout the different distributions of response time, both variables seemed to linger around the middle. Contrary to belief, it’s safe to conclude that most of the time there is not much effect response time has on total and property loss. Given the situation, there can be occasions where total and property loss are affected massively depending on the speed at which the fire service responds to the call. In regards to Civilian and Fire Service injuries and fatalities, there were very few situations where either occurred across the data set. From our visualizations, we can see that across the twelve years there have only been ten total civilian fatalities, two occasions where more than two civilians were reported injured, six occasions where more than one fire service injury occurred, and absolutely no fatalities within the fire department ever. Through our results, we were able to conclude not much significance in the relationship between fire service response time and total loss.
+
+Furthermore, used many models to forecast the daily and monthly frequencies of fire incidents in Greensboro, NC. The models that we used were TBATS, ARIMA, Holt-Winters, and Combination. All the models tended to do fairly well except when there was a drastic drop in the frequency of fire incidents in 2020. But in general, the models followed the trend of the plots nicely. The reason for that drop could have been covid and when people stayed home a lot more. From our research, we found that the models did fairly well, and sometimes some models did better than others.
 
 ## Discussion
 
@@ -1182,19 +1185,19 @@ Looking through our findings there are many different observations that can be m
 
 ## References
 
-1) Aleisa, E., &amp; Savsar, M. (2014). Response Time Analysis of firefighting operations using discrete event simulation. IEEE Xplore. Retrieved July 26, 2022, from https://ieeexplore.ieee.org/abstract/document/7046087 
+1  Aleisa, E., &amp; Savsar, M. (2014). Response Time Analysis of firefighting operations using discrete event simulation. IEEE Xplore. Retrieved July 26, 2022, from https://ieeexplore.ieee.org/abstract/document/7046087 
 
-2) Buffington, T., &amp; Ezekoye, O. A. (2019). Statistical Analysis of Fire Department Response Times ... - researchgate. Retrieved July 26, 2022, from https://www.researchgate.net/publication/333158843_Statistical_Analysis_of_Fire_Department_Response_Times_and_Effects_on_Fire_Outcomes_in_the_United_States 
+2  Buffington, T., &amp; Ezekoye, O. A. (2019). Statistical Analysis of Fire Department Response Times ... - researchgate. Retrieved July 26, 2022, from https://www.researchgate.net/publication/333158843_Statistical_Analysis_of_Fire_Department_Response_Times_and_Effects_on_Fire_Outcomes_in_the_United_States 
 
-3) Challands, N. (n.d.). The relationships between fire service response time and ... - researchgate. Retrieved July 26, 2022, from https://www.researchgate.net/publication/226273683_The_Relationships_Between_Fire_Service_Response_Time_and_Fire_Outcomes
+3  Challands, N. (n.d.). The relationships between fire service response time and ... - researchgate. Retrieved July 26, 2022, from https://www.researchgate.net/publication/226273683_The_Relationships_Between_Fire_Service_Response_Time_and_Fire_Outcomes
 
-4) KC, K. and Corcoran, J., 2017. Modelling residential fire incident response times: A spatial analytic approach. Applied Geography, 84, pp.64-74. https://doi.org/10.1016/j.apgeog.2017.03.004 
+4  KC, K. and Corcoran, J., 2017. Modelling residential fire incident response times: A spatial analytic approach. Applied Geography, 84, pp.64-74. https://doi.org/10.1016/j.apgeog.2017.03.004 
 
-5) Lian, X., Melancon, S., Presta, J.-R., Reevesman, A., Spiering, B. J., &amp; Woodbridge, D. M.-kyung. (2019). Scalable real-time prediction and analysis of San Francisco Fire Department Response Times. IEEE Xplore. Retrieved July 26, 2022, from https://ieeexplore.ieee.org/document/9060320 
+5  Lian, X., Melancon, S., Presta, J.-R., Reevesman, A., Spiering, B. J., &amp; Woodbridge, D. M.-kyung. (2019). Scalable real-time prediction and analysis of San Francisco Fire Department Response Times. IEEE Xplore. Retrieved July 26, 2022, from https://ieeexplore.ieee.org/document/9060320 
 
-6) Mukhopadhyay, A., Vorobeychik, Y., Dubey, A., &amp; Biswas, G. (2017, May 1). Prioritized allocation of emergency responders based on a continuous-time incident prediction model: Proceedings of the 16th conference on autonomous agents and multiagent systems. ACM Other conferences. Retrieved July 26, 2022, from https://dl.acm.org/doi/10.5555/3091125.3091154 
+6  Mukhopadhyay, A., Vorobeychik, Y., Dubey, A., &amp; Biswas, G. (2017, May 1). Prioritized allocation of emergency responders based on a continuous-time incident prediction model: Proceedings of the 16th conference on autonomous agents and multiagent systems. ACM Other conferences. Retrieved July 26, 2022, from https://dl.acm.org/doi/10.5555/3091125.3091154 
 
-7) Yuanwei Li, Sikui Zhang, and Guoyi Fu. 2022. Forest fire modeling and
+7  Yuanwei Li, Sikui Zhang, and Guoyi Fu. 2022. Forest fire modeling and
 analysis based on K-means clustering algorithm and time series forecasting.
 In 2022 2nd International Conference on Bioinformatics and Intelligent Computing (BIC 2022), January 21–23, 2022, Harbin, China. ACM, New York, NY,
 USA, 7 pages. https://doi.org/10.1145/3523286.3524560
@@ -1215,20 +1218,6 @@ USA, 7 pages. https://doi.org/10.1145/3523286.3524560
 
 7. For this research project, Li, Zhang, and Fu wanted to learn how to use drones to monitor and eliminate forest fire incidents in Victoria. One thing they did in this paper that is related to a part of our research was building a forecasting model that predicted the following 10 years of forest fires in Australia through K-means clustering algorithms and time series forecasting (SARIMA). With that information from the time series forecasting, they estimated the increase in the expense of one drone over ten years.
 
-
-https://www.researchgate.net/publication/316976331_Modelling_residential_fire_incident_response_times_A_spatial_analytic_approach
-
-https://www.researchgate.net/publication/226273683_The_Relationships_Between_Fire_Service_Response_Time_and_Fire_Outcomes
-
-https://www.researchgate.net/publication/333158843_Statistical_Analysis_of_Fire_Department_Response_Times_and_Effects_on_Fire_Outcomes_in_the_United_States
-
-https://dl.acm.org/doi/abs/10.1145/3523286.3524560
-
-https://dl.acm.org/doi/10.5555/3091125.3091154
-
-https://ieeexplore.ieee.org/document/9060320
-
-https://ieeexplore.ieee.org/abstract/document/7046087
 
 ## Acknowledgements
 
