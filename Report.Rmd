@@ -26,14 +26,18 @@ For more than ten years, the city of Greensboro, NC has been collecting data on 
 For this project we will be visualizing the fire incidents in Greensboro, NC. Our research questions are 1) What factors affect the response time to fire incidents? 2) How to improve the response time? 3) How does response time by fire emergency services affect the rate of total loss and civilian injuries? 4)Can we build models to forecast the number of fire incidents in certain areas of Greensboro based on the data from 2010 to 2022? 5) What Dynamic models can we make for forecasting fire incidents?
 
 ## Related Literature
-Prior to beginning this study we sought to obtain as much knowledge from previous similar reports as possible. In this process we were able to acquire multiple different reports from a variety of similar topics ranging from forecasting mass fires to observing response time. With this, each report had its own distinct way of coming to a solution.
+Prior to beginning this study we sought to obtain as much knowledge from previous similar reports as possible. In this process we were able to acquire multiple different reports from a variety of similar topics ranging from observing response time to forecasting mass fires . With this, each report had its own distinct way of coming to a solution.
 
-Although multiple studies have sought to capture the analytics behind many different aspects in regards to fire incidents, not many have gone completely in-depth in terms of covering fully what factors can affect a given fire department in terms of fire service response time. In this report we aim to completely cover all given factors that may affect fire service response time and how response time affects the rate of total loss in Greensboro, NC. Additionally, to help the Greensboro Fire Departments be better prepared for dealing with future fire incidents in the city, we will build time series models to forecast the future daily/weekly number of fire incidents in the city.
+To begin our review of previous reports we first analyzed several reports regarding the observation of response time. In a report that analyzed fire service response time by Aleisa and Savsar (2014), they wanted to create a discrete event simulation that reduces the response time to fire incidents to below five minutes. It was concluded that with the introduction of centralized systems and navigation technology response time was able to be reduced by 32%. Buffington and Ezekoye (2018) did a research project about analyzing the relationship between fire service response times and fire outcomes. While using the NFIRS dataset they were able to conclude that on average, increasing response times are linked to increasing monetary losses at a rate of about 3000 USD per minute for the interval between 3-13min. Similarly, Neil Challands (2010) also wrote a paper analyzing the same relationship. He used plots of various types to analyze the different types of fires and their relationship to response time. He found that response time significantly affects the amount of structural damage. In another report written by KC and Corcoran (2017) they looked at how spatial patterns of residential fire incidents affect response time and what factors explain those spatial patterns. In their modeling they looked at 12 variables. Some of those are Winter(Incidents during the winter), socioeconomic disadvantage, street connectivity, and fire station distance. They found that response time tends to increase from factors like winter weather, places with high numbers of children and low socioeconomic households. Most importantly, their results showed that low street connectivity had the biggest impact on response time. In addition, some students from Vanderbilt University (2017) wanted to solve the problem of having efficient response time for highly populated areas. They approached this by creating a non-linear mathematical program that optimized the expected incident coverage and proposing an algorithmic framework to solve the issue. 
+
+We then continued to review previous reports in regards to forecasting fires. Similar to our approach we found a group of students from the Data Science program at the University of San Francisco (2019) who were able to use linear regression in machine learning to predict and analyze response times for the San Francisco Fire Department.  Another report written by Li, Zhang, and Fu (2022) they wanted to learn how to use drones to monitor and eliminate forest fire incidents in Victoria. One thing they did in this paper that is related to a part of our research was building a forecasting model that predicted the following 10 years of forest fires in Australia through K-means clustering algorithms and time series forecasting (SARIMA). With that information from the time series forecasting, they estimated the increase in the expense of one drone over ten years.
+
+Although multiple studies have sought to capture the analytics behind many different aspects in regards to fire incidents, not many have gone completely in-depth in terms of covering fully what factors can affect a given fire department in terms of fire service response time. In this report we aim to completely cover all given factors that may affect fire service response time and how response time affects the rate of total loss in Greensboro, NC. Additionally, to help the Greensboro Fire Department be better prepared for dealing with future fire incidents in the city, we will build a variety of models to forecast the future daily and weekly number of fire incidents in the city.
 
 ## Data, Methods, and Analysis
 
 ### Data
-For this analysis, we utilized public data from the Greensboro Fire Department. This data set accounts for all reported fire incidents in the city of Greensboro from July 1st of 2010 to May 31st of 2022. Although, we noticed there were some missing values in the data. So we did a map to check the percentage of missing values and it ended being about 14 percent for the whole data set. The data can be found at this website link:https://data.greensboro-nc.gov/datasets/greensboro-fire-incidents/explore
+For this analysis, we utilized public data from the Greensboro Fire Department. This data set accounts for all reported fire incidents in the city of Greensboro and updates itself continuously. Although, we noticed there were some missing values in the data. So we did a map to check the percentage of missing values and it ended being about 14 percent for the whole data set. To further cater towards our research we filtered the data set in two areas; the date (from July 1, 2010 to May 31st, 2022) and the Property Use ("1-2 family dwelling"). In addition to this we converted ResponseTime to seconds. The initial data set can be found at this website link:https://data.greensboro-nc.gov/datasets/greensboro-fire-incidents/explore
 
 ### Methods
 
@@ -127,23 +131,9 @@ gso.fire %>%
   theme_economist()
 ```
 
-For the histogram above, we learned that the typical response time falls between about 100 seconds to 400 seconds and that the distribution is normal.
+For the histogram above, we learned that the typical response time falls between about 100 seconds to 400 seconds and that the distribution is normal. 
 
-```{r, echo=FALSE}
-gso.fire %>%
-  filter(response_time_seconds < cutoff.response_time) %>%
-  count(CivilianInjuries) %>%
-  mutate(nlog = log10(n)) %>%
-  ggplot(aes(x = CivilianInjuries, y = nlog)) +
-  geom_col(color = "black", fill = "pink") +
-  xlab("Civilian Injuries") +
-  ylab("Count (Log10 scale)") +
-  ggtitle("Distribution of Civilian Injuries") +
-  theme_economist()
-```
-
-
-```{r, echo=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = TotalStaffOnIncident)) +
@@ -156,7 +146,54 @@ gso.fire %>%
   xlim(0,25)
 ```
 
-```{r, echo=FALSE}
+From the histogram above, we can visually see the distribution of the amount of staff members reported towards a given incident. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of total stall on incident is 4.
+
+```{r, , message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(CivilianInjuries) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = CivilianInjuries, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Civilian Injuries") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Civilian Injuries") +
+  theme_economist()
+```
+
+For the graph above, we can identify that there are not many occasions in which civilians have reported injured. There has only been two incidents in which two or more civilian injuries occurred. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of civilian injuries is 0.
+
+```{r, , message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(CivilianFatalities) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = CivilianFatalities, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Civilian Fatalities") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Civilian Fatalities") +
+  theme_economist()
+```
+
+For the graph above, we can identify that there has only been a couple incidents in which fatalities have been reported in regards to civilians. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of civilian fatalities is 0.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(FireServiceInjuries) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = FireServiceInjuries, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Fire Service Injuries") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Fire Service Injuries") +
+  theme_economist()
+```
+
+For the graph above, we can identify that there has only been a handful of incidents in which injuries have been reported in regards to fire service respondents. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of fire service injuries is 0.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = PropertyLoss)) +
@@ -168,7 +205,9 @@ gso.fire %>%
   theme_economist() 
 ```
 
-```{r, echo=FALSE}
+The histogram above displays the amount of property loss across the amount of incidents reported.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = TotalLosses)) +
@@ -180,6 +219,7 @@ gso.fire %>%
   theme_economist() 
 ```
 
+The histogram above displays the amount of total loss (property + content) across the amount of incidents reported.
 
 ```{r, echo=FALSE}
 gso.fire %>%
@@ -328,7 +368,7 @@ gso.fire %>%
 
 For this graph above, we looked at nature code and how it affects response time. Nature code represents the nature of the fire incident, whether it was a fire or someone having a stroke. As shown by the graph, there is a lot of variability in response time depending on the nature of the fire incident.
 
-```{r, echo=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = TotalStaffOnIncident, y = response_time_seconds)) +
@@ -339,9 +379,9 @@ gso.fire %>%
   theme_economist()
 ```
 
-From this scatter plot, we wanted to see if the number of staff on incident would affect the response time of the fire responders. The outcome of the graph shows that there is no significant change in response time when having more people on shift. The response time still falls between 100 and 400 seconds, no matter the number of responders.
+From this scatter plot, we wanted to see if the number of staff on incident would affect the response time of the fire responders. The outcome of the graph shows that there is no significant change in response time when having more people on shift. The response time still falls between 100 and 600 seconds, no matter the number of responders.
 
-```{r, echo=FALSE}
+```{r,  message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(y = PropertyLoss, x = response_time_seconds)) +
@@ -353,7 +393,9 @@ gso.fire %>%
   theme_economist()
 ```
 
-```{r, echo=FALSE}
+From the scatter plot above, we wanted to visualize the relationship between response time and property loss. Through this we were able to identify a very slight correlation between the two. The majority of the higher property loss values fall between 100 and 400 seconds.
+
+```{r,  message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(y = TotalLosses, x = response_time_seconds)) +
@@ -364,6 +406,10 @@ gso.fire %>%
   ggtitle("Total Loss vs Response Time") +
   theme_economist()
 ```
+
+From the scatter plot above, we wanted to visualize the relationship between response time and total loss. Through this we were able to identify a very slight correlation between the two. Similar to property loss, the majority of the higher total loss values fall between 100 and 400 seconds.
+
+
 
 Below, the box and violin plots had similar results to the bar graphs presented earlier. Each graph will summarize briefly what have seen before.
 
@@ -463,10 +509,10 @@ gso.fire %>%
 
 For the graph above, there would sometimes be a couple alarms set off for a fire incident, but it did not affect the response time whether the alarm was once or twice.
 
-```{r, echo=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = CivilianInjuries, y = response_time_seconds)) +
+  ggplot(aes(x = CivilianInjuries, y = response_time_seconds, group = CivilianInjuries)) +
   geom_violin(show.legend = FALSE, fill = "light blue") +
   geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
   xlab("Civilian Injuries") +
@@ -474,10 +520,12 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Civilian Injuries")
 ```
 
-```{r, echo=FALSE}
+For the graph above, we can see the how each level of civilian injury various in relations to response time.
+
+```{r,  message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = CivilianFatalities, y = response_time_seconds)) +
+  ggplot(aes(x = CivilianFatalities, y = response_time_seconds, group = CivilianFatalities)) +
   geom_violin(show.legend = FALSE, fill = "light blue") +
   geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
   xlab("Civilian Fatalities") +
@@ -485,16 +533,20 @@ gso.fire %>%
   ggtitle("Violin and Box Plot of Response Time Densities by Civilian Fatalities")
 ```
 
-```{r, echo=FALSE}
+For the graph above, we can see the how each level of civilian fatality various in relations to response time.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = FireServiceInjuries, y = response_time_seconds)) +
+  ggplot(aes(x = FireServiceInjuries, y = response_time_seconds, group = FireServiceInjuries)) +
   geom_violin(show.legend = FALSE, fill = "light blue") +
   geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
   xlab("Fire Service Injuries") +
   ylab("Response Time (Seconds)") +
   ggtitle("Violin and Box Plot of Response Time Densities by Fire Service Injuries")
 ```
+
+For the graph above, we can see the how each level of fire service injury various in relations to response time.
 
 
 ### Time Series Visualization
@@ -526,10 +578,8 @@ To take a deeper look into the time series below is the daily time series graphs
 incidents_annual = gso.fire.ts %>%
   separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day")) #%>%
   #select(-Month)
-
 incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
 colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
-
 incidents_annual %>%
   ggplot(aes(x = AlarmDate2, y = n)) + 
   ggtitle("Time Series Plots for Frequency of Daily Fire Incidents From 2010 to 2022") + 
@@ -541,7 +591,6 @@ incidents_annual %>%
   theme(plot.title = element_text(size=22)) +
   theme(axis.title=element_text(size=18)) +
   facet_wrap(~Year, scales = "free_x")
-
 ```
 
 Above is the time series of the daily fire incidents broken into plots by year. From these graphs we have a clearer view of peaks for each year. So from the results, we can see that there were major peeks around April 2011, March 2014, October 2018, and February 2021.
@@ -616,23 +665,18 @@ After checking for stationarity we could begin forecasting.
 y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats = tbats(y.dif)
 daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
-
-
 #point forecast values
 dif.Yhat = daily.dif.tbats.fc$mean
 dif.Yhat.upper = daily.dif.tbats.fc$upper
 dif.Yhat.lower = daily.dif.tbats.fc$lower
-
 Yhat = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
 Yhat = ts(Yhat, start = c(2022, 152), frequency=365)
 Yhat_upper = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
 Yhat_upper = ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
 Yhat_lower = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower = ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
-
 fire.ts = ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
               frequency = 360) # A 360 day trim to see forecast better
-
 #TBAT forecasting
 autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
@@ -640,7 +684,6 @@ autoplot(fire.ts) +
   xlab("Date") +
   ylab("Frequency of Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
-
 ```
 
 ```{r, echo=FALSE}
@@ -681,15 +724,12 @@ gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
                                  frequency = 365)
 #attempt at differencing
 gso.fire.ts.3.dif = diff(gso.fire.ts.3)
-
 y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats.3 = tbats(y.dif.3)
 daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
 dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
-
 Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
 Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
-
 gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                     frequency = 365)
 #TBAT forecasting
@@ -769,14 +809,10 @@ Now that the monthly data is stationary we can being forecasting.
 y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
 dif.tbats.month = tbats(y.dif.month)
 dif.tbats.month.fc = forecast::forecast(dif.tbats.month, h = 8)
-
-
 #point forecast values
 dif.Yhat.month = dif.tbats.month.fc$mean
-
 Yhat.month = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dif.Yhat.month))
 Yhat.month = ts(Yhat.month, start = c(2022, 05), frequency=12)
-
 #TBATS forecasting
 autoplot(gso.fire.ts.month.2) + 
   autolayer(Yhat.month, series="Point Forecasts") + 
@@ -818,10 +854,8 @@ In the plot above, it can be seen that the ARIMA model was producing similar spi
 dif.monthly.holt <- HoltWinters(gso.fire.ts.month.2.dif)
 dif.fcast.monthly <- forecast::forecast(dif.monthly.holt, h=8, level=c(80,95))
 dYhat.Holt <- dif.fcast.monthly$mean
-
 Yhat.Holt <- cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.Holt))
 Yhat.Holt <- ts(Yhat.Holt, start = c(2022, 05), frequency=12)
-
 autoplot(gso.fire.ts.month.2) +
   autolayer(Yhat.Holt, series = "Point Forecasts") +
   ggtitle("Forecasts of Monthly Frequency of Fire Incidents using HoltWinters") +
@@ -847,19 +881,15 @@ dif.training.tbats.2 = subset(y.dif.2, end=length(y.dif.2)-151)
 dif.test.tbats.2 = subset(y.dif.2, start=length(y.dif.2)-150)
 dif.daily.train.tbats.2 = tbats(dif.training.tbats.2)
 dif.train.fc = forecast(dif.daily.train.tbats.2, h=151)
-
 #getting point forecasts 
 dYhat.tbats = dif.train.fc$mean
-
 #setting up normal ts training and test sets 
 y.2 <- msts(gso.fire.ts.2, seasonal.periods=c(7,365.25))
 training.tbats.2 <- subset(y.2, end=length(y.2)-151)
 test.tbats.2 <- subset(y.2, start=length(y.2)-150)
-
 #reverting back to original points   
 Yhat.tbats <- cumsum(c(training.tbats.2[length(training.tbats.2)], dYhat.tbats))
 Yhat.tbats <- ts(Yhat.tbats, start = c(2022, 1), frequency = 365)
-
 autoplot(training.tbats.2) + 
   autolayer(Yhat.tbats, series="Point Forecasts") + 
   autolayer(test.tbats.2, series="Test Set", alpha = 0.7) + 
@@ -868,11 +898,9 @@ autoplot(training.tbats.2) +
   ylab("Frequency of Fire Incidents") +
   coord_cartesian(xlim = c(2020, 2023)) +
   theme(legend.position = "bottom")
-
 #checking accuracy
 dif.daily.test.tbats.2 <- tbats(dif.test.tbats.2)
 accuracy(dif.daily.test.tbats.2)
-
 ```
 
 For the plot above, the data was split into a training set and a test set. The training set was from July 1, 2010 to December 31, 2022. The test set was from January 1, 2022 to May 31, 2022. The results show that the TBATS model did fairly well, but it did not follow the big dip in the true data.
@@ -885,7 +913,6 @@ training.arima = subset(gso.fire.ts.2, end=length(gso.fire.ts.2)-151)
 test.arima = subset(gso.fire.ts.2, start=length(gso.fire.ts.2)-150)
 daily.train.arima = auto.arima(training.arima)
 fc.train.arima = forecast(daily.train.arima, h=151)
-
 autoplot(fc.train.arima) + 
   autolayer(test.arima, series="Test Set", alpha = 0.7) + 
   ggtitle("Multi-Step ARIMA Daily Forecasts of Frequency of Fire Incidents") + 
@@ -893,7 +920,6 @@ autoplot(fc.train.arima) +
   ylab("Frequency of Fire Incidents") + 
   coord_cartesian(xlim = c(2020, 2023)) +
   theme(legend.position = "bottom")
-
 daily.test.arima = arima(test.arima)
 accuracy(daily.test.arima)
 ```
@@ -904,15 +930,12 @@ From the visual above, the data was again split into a training set and a test s
 #time series combination
 train = window(gso.fire.ts.2, end=c(2019, 12))
 h = length(gso.fire.ts.2) - length(train)
-
 #ARIMA model 
 ARIMA = forecast::forecast(auto.arima(train, lambda=0, biasadj=TRUE), h=h)
-
 #TBATS model 
 train.tbats = msts(gso.fire.ts.2.dif, end=c(2019,12), seasonal.periods = c(7,365.25))
 TBATS = forecast::forecast(tbats(train.tbats, biasadj = TRUE), h=h)
 dYhat.combo = TBATS$mean
-
 Yhat.combo = cumsum(c(train[length(train)], dYhat.combo))
 Yhat.combo = ts(Yhat.combo, start = c(2019, 12), frequency = 365)
 Combination = (ARIMA[["mean"]] + Yhat.combo)/2
@@ -921,7 +944,6 @@ true.daily = gso.fire.ts %>%
 true.daily.ts = ts(true.daily$n, 
                             start = c(2019,12), end = c(2021,153), 
                             frequency = 365)
-
 autoplot(train) +
   autolayer(true.daily.ts) +
   autolayer(Combination, series="Combination", alpha=0.8) +
@@ -931,12 +953,10 @@ autoplot(train) +
   ylab("Frequency of Fire Incidents") +
   ggtitle("Time Series Combination for Daily Frequency of Fire Incidents") + 
   theme(legend.position = "bottom")
-
 c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
   TBATS = accuracy(Yhat.combo, gso.fire.ts.2)["Test set", "RMSE"],
   Combination =
     accuracy(Combination, gso.fire.ts.2)["Test set", "RMSE"])
-
 ```
 
 As can be seen above, the data was split into training and test sets with the same dates as the two previous plots. From the results it can be seen that the TBATS model did not do that well and predicted a bigger decrease than what actually happened with the actual data.
@@ -945,7 +965,6 @@ From the accuracy function, we can see that the ARIMA and Combination models did
 
 ```{r, echo=FALSE}
 #multi-step forecasting for monthly data
-
 #multi-step TBATS
 y2.dif.monthly = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
 dif.training.tbats.2.monthly = subset(y2.dif.monthly, end=length(y2.dif.monthly)-5)
@@ -956,11 +975,9 @@ dYhat.ms.tbats.monthly = dif.fc.train.tbats.2.monthly$mean
 y2.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
 training.tbats.monthly.2 = subset(y2.monthly, end=length(y2.monthly)-5)
 test.tbats.monthly.2 = subset(y2.monthly, start=length(y2.monthly)-4)
-
 Yhat.ms.tbats.monthly = cumsum(c(training.tbats.monthly.2[length(training.tbats.monthly.2)],
                                  dYhat.ms.tbats.monthly))
 Yhat.ms.tbats.monthly = ts(Yhat.ms.tbats.monthly, start = c(2022,01), frequency=12)
-
 autoplot(training.tbats.monthly.2) + 
   autolayer(Yhat.ms.tbats.monthly, series="Point Forecasts") + 
   autolayer(test.tbats.monthly.2, series="Test Set", alpha = 0.7) + 
@@ -986,7 +1003,6 @@ training.arima.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.mont
 test.arima.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
 train.arima.monthly.3 = auto.arima(training.arima.monthly)
 fc.train.arima.monthly = forecast(train.arima.monthly.3, h=5)
-
 autoplot(fc.train.arima.monthly) + 
   autolayer(test.arima.monthly, series="Test Set", alpha = 0.7) + 
   ggtitle("Multi-Step ARIMA Monthly Forecasts of Frequency of Fire Incidents") + 
@@ -1013,15 +1029,12 @@ dif.training.HW.monthly = subset(gso.fire.ts.month.2.dif, end=length(gso.fire.ts
 dif.test.HW.monthly = subset(gso.fire.ts.month.2.dif, start=length(gso.fire.ts.month.2.dif)-4)
 dif.train.HW.monthly = HoltWinters(dif.training.HW.monthly)
 dif.fc.HW = forecast::forecast(dif.train.HW.monthly, h=5)
-
 dYhat.ms.HW = dif.fc.HW$mean
 Yhat.ms.HW = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.ms.HW))
 Yhat.ms.HW = ts(Yhat.ms.HW, start = c(2022,01,01), frequency=12)
-
 training.HW.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
 test.HW.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
 true.count.monthly = ts(gso.fire.ts.month.2, start=c(2010,07,01), end=c(2021,12,31), frequency=12)
-
 autoplot(training.HW.monthly) + 
   autolayer(Yhat.ms.HW, series = "Point Forecasts") + 
   autolayer(test.HW.monthly, series = "Test Set") + 
@@ -1044,33 +1057,25 @@ From the accuracy function, the root mean squared error was 134.55, which is sig
 #Time series combination for monthly
 train.monthly.2 = window(gso.fire.ts.month.2, end=c(2021, 05))
 h.monthly.2 = length(gso.fire.ts.month.2) - length(train.monthly.2)
-
 #ARIMA model 
 ARIMA.monthly.2 = forecast::forecast(auto.arima(train.monthly.2, lambda=0, biasadj=TRUE),
                                    h=h.monthly.2)
-
 #TBATS model 
 train.tbats.monthly.2 = msts(gso.fire.ts.month.2.dif, end=c(2021,05), seasonal.periods = 12)
 tbats.monthly.2 = forecast::forecast(tbats(train.tbats.monthly.2, biasadj = TRUE),
                                      h=h.monthly.2)
 dYhat.combo.monthly.2 = tbats.monthly.2$mean
-
 Yhat.combo.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)], dYhat.combo.monthly.2))
 Yhat.combo.monthly.2 = ts(Yhat.combo.monthly.2, start = c(2021,05), frequency = 12)
-
 #HoltWinters Model 
 HW.monthly.2 = forecast::forecast(HoltWinters(gso.fire.ts.month.2.dif), h=h.monthly.2)
-
 dYhat.HW.monthly.2 = HW.monthly.2$mean
-
 Yhat.HW.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)],dYhat.HW.monthly.2))
 Yhat.HW.monthly.2 = ts(Yhat.HW.monthly.2, start = c(2021,05), frequency=12)
 Combination.monthly.2 = (ARIMA.monthly.2[["mean"]] + Yhat.combo.monthly.2 + 
                            Yhat.HW.monthly.2)/3
-
 y.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
 test.monthly = subset(y.monthly, start=length(y.monthly)-12)
-
 autoplot(train.monthly.2) +
   autolayer(test.monthly, series="True Count") +
   autolayer(Combination.monthly.2, series="Combination", alpha=0.8) +
@@ -1082,7 +1087,6 @@ autoplot(train.monthly.2) +
   ggtitle("Time Series Combination for Monthly Frequency of Fire Incidents") + 
   theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
         title = element_text(size = 9)) 
-
 c(ARIMA = accuracy(ARIMA.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
   TBATS = accuracy(Yhat.combo.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
   HW = accuracy(Yhat.HW.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
@@ -1133,7 +1137,6 @@ Then we used the stepwise regression for our first method of variable selection.
 ```{r, echo=FALSE}
 lm.res.time.select = stepAIC(lm.res.time)
 summary(lm.res.time.select)
-
 ```
 
 From this result we are able to see in further in detail which components effect response time and at what level due to the stepwise regression model eliminating the components that have little to no impact on response time. 
@@ -1148,20 +1151,17 @@ plot(las.Mod)
 This result allows us to view the level of significance in terms of each coefficient due to the shrinkage that this model produces.
 
 ### Random Forest
-Below is a Random Forest model.
+As an alternative to our linear regression models we ran a tree based random forest model. For this model we produced a bar graph to display the significance in each variable from a model we created using the Ranger() command. In this graph we are able to visually identify how much the models accuracy would be affected by each variable. 
 
 ```{r, echo=FALSE}
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
            shift , Month , AlarmTime , NatureCode)
-
 RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
                          shift + Month + AlarmTime + NatureCode,
                        data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
-
 variable = names(RF.Mod.Ranger$variable.importance)
 rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
-
 ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
   geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
   ylab("Variable Importance")+
@@ -1169,7 +1169,7 @@ ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+
   ggtitle("Information Value Summary")
 ```
 
-For our random forest model we produced a bar graph to display the significance in each variable from a model we created using the Ranger() command. In this graph we are able to visually identify how much the models accuracy would be affected by each variable. After producing the bar plot we are able to see that Nature Code holds the most importance in relation to the model. 
+After producing the bar plot we are able to see that Nature Code holds the most importance in relation to the model followed by Fire District and Alarm Time.
 
 ## Conclusion
 
@@ -1177,7 +1177,7 @@ Our extensive research has provided us with the ability to provide sufficient re
 
 While identifying what factors affect fire service response time and how to improve fire service response time, we first visualized the relationship between response time and every other tested variable. Through this, we were able to decide which variables to apply to a linear regression model to produce the level of significance that each variable holds with response time. In our initial linear regression model, we tested the variables; TotalStaffonIncident, FireDistrict, DayofWeek, shift, Month, AlarmTime, and NatureCode. We then used two different variable selection methods (Stepwise and LASSO) and analyzed the results between the three models. Following the results from our linear regression models, we ran a random forest model to display the significance that each given variable obtains. With our results from this process, we were able to conclude that NatureCode followed by FireDistrict and AlarmTime held the most significance in relation to response time.
 
-In regards to the effect response time has on the total loss we were able to quickly identify this through our bivariate visualizations. In this process, we compared the variables PropertyLoss, TotalLosses, CivilianInjuries, CivilianFatalities, FireServiceInjuries, and FireServiceFatalities to response time and produced scatter plots and a combination of box and violin plots to visualize the relationship between the two. After making our property and total loss visualizations we were able to see not much in terms of significance between them and response time. Throughout the different distributions of response time, both variables seemed to linger around the middle. Contrary to belief, it’s safe to conclude that most of the time there is not much effect response time has on total and property loss. Given the situation, there can be occasions where total and property loss are affected massively depending on the speed at which the fire service responds to the call. In regards to Civilian and Fire Service injuries and fatalities, there were very few situations where either occurred across the data set. From our visualizations, we can see that across the twelve years there have only been ten total civilian fatalities, two occasions where more than two civilians were reported injured, six occasions where more than one fire service injury occurred, and absolutely no fatalities within the fire department ever. Through our results, we were able to conclude not much significance in the relationship between fire service response time and total loss.
+In regards to the effect response time has on the total loss we were able to quickly identify this through our bivariate visualizations. In this process, we compared the variables PropertyLoss, TotalLosses, CivilianInjuries, CivilianFatalities, FireServiceInjuries, and FireServiceFatalities to response time and produced scatter plots and a combination of box and violin plots to visualize the relationship between the two. After making our property and total loss visualizations we were able to see a very slight relationship between them and response time. Throughout the different distributions of response time, both variables seemed to linger around the middle betwen 100 and 400 seconds. Contrary to belief, it’s safe to conclude that most of the time there is not much effect response time has on total and property loss. Given the situation, there are definitely occasions where total and property loss are affected massively depending on the speed at which the fire service responds to the call. In regards to Civilian and Fire Service injuries and fatalities, there were very few situations where either occurred across the data set. From our visualizations, we can see that across the twelve years there have only been ten total civilian fatalities, two occasions where more than two civilians were reported injured, six occasions where more than one fire service injury occurred, and absolutely no fatalities within the fire department ever. Through our results, we were able to conclude not much significance in the relationship between fire service response time and total loss.
 
 Furthermore, used many models to forecast the daily and monthly frequencies of fire incidents in Greensboro, NC. The models that we used were TBATS, ARIMA, Holt-Winters, and Combination. All the models tended to do fairly well except when there was a drastic drop in the frequency of fire incidents in 2020. But in general, the models followed the trend of the plots nicely. The reason for that drop could have been covid and when people stayed home a lot more. From our research, we found that the models did fairly well, and sometimes some models did better than others.
 
@@ -1209,23 +1209,6 @@ Looking through our findings there are many different observations that can be m
 analysis based on K-means clustering algorithm and time series forecasting.
 In 2022 2nd International Conference on Bioinformatics and Intelligent Computing (BIC 2022), January 21–23, 2022, Harbin, China. ACM, New York, NY,
 USA, 7 pages. https://doi.org/10.1145/3523286.3524560
-
-## Literature Review
-
-1. In a report analyzing fire service response time by Aleisa and Savsar, they wanted to create a discrete event simulation that reduces the response time to fire to below five minutes. It was concluded that with the introduction of centralized systems and navigation technology response time was able to reduce by 32%.
-
-2. Buffington and Ezekoye did a research project about analyzing the relationship between fire department response times and fire outcomes. While using the NFIRS dataset they were able to conclude that on average, increasing response times are linked to increasing monetary losses at a rate of about 3000 USD per minute for the interval between 3-13min.
-
-3. Neil Challnads also wrote a paper analyzing the relationship between fire service response time and fire outcomes. He used plots of various types to analyze the different types of fires and their relationship to response time. He found that response time significantly affects the amount of structural damage.
-
-4. In this report, KC and Corcoran looked at how spatial patterns of residential fire incidents affect response time and what factors explain those spatial patterns. In their modelling they looked at 12 variables. Some of those are Winter(Incidents during the winter), socioeconomic disadvantage, street connectivity, and fire station distance. They found that response time tends to increase from factors like winter weather, places with high numbers of children and low socioeconomic households. Most importantly, their results showed that low street connectivity had the biggest impact on response time.
-
-5. Similar to our approach, a group of students from the Data Science program at the University of San Francisco were able to use linear regression in machine learning to predict and analyze response times for the San Francisco Fire Department.
-
-6. From this research project, some students from Vanderbilt University wanted to solve the problem of having efficient response time for highly populated areas. They approached this by creating a non-linear mathematical program that optimized the expected incident coverage and proposing an algorithmic framework to solve the issue.
-
-7. For this research project, Li, Zhang, and Fu wanted to learn how to use drones to monitor and eliminate forest fire incidents in Victoria. One thing they did in this paper that is related to a part of our research was building a forecasting model that predicted the following 10 years of forest fires in Australia through K-means clustering algorithms and time series forecasting (SARIMA). With that information from the time series forecasting, they estimated the increase in the expense of one drone over ten years.
-
 
 ## Acknowledgements
 
@@ -1627,10 +1610,8 @@ gso.fire.ts %>%
 ```{r, eval=FALSE}
 incidents_annual = gso.fire.ts %>%
   separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day"))
-
 incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
 colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
-
 incidents_annual %>%
   ggplot(aes(x = AlarmDate2, y = n)) + 
   ggtitle("Time Series Plots for Frequency of Daily Fire Incidents Organized by Year") + 
@@ -1675,36 +1656,29 @@ ndiffs(gso.fire.ts.2)
 ndiffs(gso.fire.ts.2)
 acf(gso.fire.ts.2)
 summary(ur.kpss(gso.fire.ts.2))
-
 #attempt at differencing
 gso.fire.ts.2.dif = diff(gso.fire.ts.2)
 acf(gso.fire.ts.2.dif)
-
 cbind("Fire Incidents" = gso.fire.ts.2,
       "First differenced" = diff(gso.fire.ts.2)) %>%
   autoplot(facets=TRUE) +
   xlab("Date") + ylab("") +
   ggtitle("Stationarity Transformations of Daily Fire Incidents")
-
 y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats = tbats(y.dif)
 daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
-
 #point forecast values
 dif.Yhat = daily.dif.tbats.fc$mean
 dif.Yhat.upper <- daily.dif.tbats.fc$upper
 dif.Yhat.lower <- daily.dif.tbats.fc$lower
-
 Yhat <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
 Yhat <- ts(Yhat, start = c(2022, 152), frequency=365)
 Yhat_upper <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
 Yhat_upper <- ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
 Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
-
 fire.ts <- ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
               frequency = 360) # A 360 day trim to see forecast better
-
 #TBAT forecasting
 autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
@@ -1730,15 +1704,12 @@ gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
                                  frequency = 365)
 #attempt at differencing
 gso.fire.ts.3.dif = diff(gso.fire.ts.3)
-
 y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats.3 = tbats(y.dif.3)
 daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
 dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
-
 Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
 Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
-
 gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                     frequency = 365)
 #TBAT forecasting
@@ -1768,24 +1739,18 @@ Forecasting for monthly number of fire incidents.
 #convert gso.fire.ts.month to official ts object
 gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
                           frequency = 12)
-
 #looking at stationarity
 acf(gso.fire.ts.month.2)
 summary(ur.kpss(gso.fire.ts.month.2))
-
 ndiffs(gso.fire.ts.month.2) #1
 nsdiffs(gso.fire.ts.month.2) #0
-
 #attempt at differencing
 gso.fire.ts.month.2.dif = diff(gso.fire.ts.month.2)
-
 #looking at stationarity for difference
 acf(gso.fire.ts.month.2.dif)
-
 summary(ur.kpss(gso.fire.ts.month.2.dif))
 ndiffs(gso.fire.ts.month.2.dif) #0
 nsdiffs(gso.fire.ts.month.2.dif) #0
-
 cbind("Fire Incidents" = gso.fire.ts.month.2,
       "First differenced" = diff(gso.fire.ts.month.2)) %>%
   autoplot(facets=TRUE) +
@@ -1799,7 +1764,6 @@ cbind("Fire Incidents" = gso.fire.ts.month.2,
 gso.fire.filtered = gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>% 
   dplyr::select(response_time_seconds, everything())
-
 gso.fire.filtered = gso.fire.filtered %>%
   mutate(AlarmTime = case_when(AlarmHour >= 0 & AlarmHour < 6 ~ "0-5", 
                                AlarmHour >= 6 & AlarmHour < 12 ~ "6-11",
@@ -1831,19 +1795,16 @@ plot(las.Mod)
 
 
 ### Random Forest
-```{r}
+```{r, eval=FALSE}
 #Random Forrest with ranger functiom
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
            shift , Month , AlarmTime , NatureCode)
-
 RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
                          shift + Month + AlarmTime + NatureCode,
                        data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
-
 variable = names(RF.Mod.Ranger$variable.importance)
 rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
-
 ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
   geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
   ylab("Variable Importance")+
