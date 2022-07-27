@@ -75,19 +75,22 @@ gso.fire %>%
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = CivilianInjuries)) +
-  geom_histogram(binwidth = 0.2, color = "black", fill = "pink") +
-  xlab("Response Time (Seconds)") +
-  ylab("Count") +
+  count(CivilianInjuries) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = CivilianInjuries, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Civilian Injuries") +
+  ylab("Count (Log10 scale)") +
   ggtitle("Distribution of Civilian Injuries") +
   theme_economist()
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = TotalStaffOnIncident)) +
-  geom_histogram(show.legend = FALSE, color = "black", fill = "pink") +
+  geom_histogram(bins = 25,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_y_log10() +
   xlab("Total Staff on Incident") +
-  ylab("Count") +
+  ylab("Count (Log10 scale)") +
   ggtitle("Distribution of Total Staff on Incident") +
   theme_economist() +
   xlim(0,25)
@@ -95,8 +98,9 @@ gso.fire %>%
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = PropertyLoss)) +
-  geom_histogram(show.legend = FALSE, color = "black", fill = "pink") +
-  xlab("Property Loss") +
+  geom_histogram(bins = 20,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_x_log10() +
+  xlab("Property Loss (Log10 scale)") +
   ylab("Count") +
   ggtitle("Distribution of Property Loss") +
   theme_economist() 
@@ -104,8 +108,9 @@ gso.fire %>%
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = TotalLosses)) +
-  geom_histogram(show.legend = FALSE, color = "black", fill = "pink") +
-  xlab("Total Loss") +
+  geom_histogram(bins = 20,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_x_log10() +
+  xlab("Total Loss (Log10 scale)") +
   ylab("Count") +
   ggtitle("Distribution of Total Loss") +
   theme_economist() 
@@ -247,6 +252,42 @@ gso.fire %>%
   ylab("Response Time (Seconds)") +
   ggtitle("Nature Code vs Response Time")
 
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = TotalLosses, x = as.factor(AlarmHour))) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Total Loss (Log10 scale)") +
+  xlab("Alarm Hour") +
+  ggtitle("Total Loss by Alarm Hour")
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = TotalLosses, x = shift)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Total Loss (Log10 scale)") +
+  xlab("Shift") +
+  ggtitle("Total Loss by Shift")
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = PropertyLoss, x = as.factor(AlarmHour))) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Property Loss (Log10 scale)") +
+  xlab("Alarm Hour") +
+  ggtitle("Property Loss by Alarm Hour")
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = PropertyLoss, x = shift)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Property Loss (Log10 scale)") +
+  xlab("Shift") +
+  ggtitle("Property Loss by Shift") +
+  theme_economist()
 
 #...
 #scatter plots
@@ -264,19 +305,21 @@ gso.fire %>%
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = PropertyLoss, y = response_time_seconds)) +
+  ggplot(aes(y = PropertyLoss, x = response_time_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Property Loss") +
-  ylab("Response Time (Seconds)") +
+  scale_y_log10() +
+  ylab("Property Loss (Log10 scale)") +
+  xlab("Response Time (Seconds)") +
   ggtitle("Property Loss vs Response Time") +
   theme_economist()
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = TotalLosses, y = response_time_seconds)) +
+  ggplot(aes(y = TotalLosses, x = response_time_seconds)) +
   geom_point(stat = "identity", show.legend = FALSE) +
-  xlab("Total Loss") +
-  ylab("Response Time (Seconds)") +
+  scale_y_log10() +
+  ylab("Total Loss (Log10 scale)") +
+  xlab("Response Time (Seconds)") +
   ggtitle("Total Loss vs Response Time") +
   theme_economist()
 
@@ -475,7 +518,6 @@ y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats = tbats(y.dif)
 daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
 
-
 #point forecast values
 dif.Yhat = daily.dif.tbats.fc$mean
 dif.Yhat.upper = daily.dif.tbats.fc$upper
@@ -529,7 +571,7 @@ dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values
 Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
 Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
 
-gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+gso.fire.ts.true = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                     frequency = 365)
 #TBAT forecasting
 autoplot(gso.fire.ts.3) + 
@@ -805,48 +847,54 @@ autoplot(training.HW.monthly) +
 accuracy(Yhat.ms.HW, gso.fire.ts.month.2)
 
 #Time series combination for monthly
-train.monthly = window(gso.fire.ts.month.2, end=c(2019, 12))
-h.monthly = length(gso.fire.ts.month.2) - length(train.monthly)
+train.monthly.2 = window(gso.fire.ts.month.2, end=c(2021, 05))
+h.monthly.2 = length(gso.fire.ts.month.2) - length(train.monthly.2)
 
 #ARIMA model 
-ARIMA.monthly = forecast::forecast(auto.arima(train.monthly, lambda=0, biasadj=TRUE),
-                                   h=h.monthly)
+ARIMA.monthly.2 = forecast::forecast(auto.arima(train.monthly.2, lambda=0, biasadj=TRUE),
+                                   h=h.monthly.2)
 
 #TBATS model 
-train.tbats.monthly = msts(gso.fire.ts.month.2.dif, end=c(2019,12), seasonal.periods = 12)
-tbats.monthly = forecast::forecast(tbats(train.tbats.monthly, biasadj = TRUE), h=h.monthly)
-dYhat.combo.monthly = tbats.monthly$mean
+train.tbats.monthly.2 = msts(gso.fire.ts.month.2.dif, end=c(2021,05), seasonal.periods = 12)
+tbats.monthly.2 = forecast::forecast(tbats(train.tbats.monthly.2, biasadj = TRUE),
+                                     h=h.monthly.2)
+dYhat.combo.monthly.2 = tbats.monthly.2$mean
 
-Yhat.combo.monthly = cumsum(c(train.monthly[length(train.monthly)], dYhat.combo.monthly))
-Yhat.combo.monthly = ts(Yhat.combo.monthly, start = c(2019,12), frequency = 12)
+Yhat.combo.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)], dYhat.combo.monthly.2))
+Yhat.combo.monthly.2 = ts(Yhat.combo.monthly.2, start = c(2021,05), frequency = 12)
 
 #HoltWinters Model 
-HW.monthly = forecast::forecast(HoltWinters(gso.fire.ts.month.2.dif), h=h.monthly)
+HW.monthly.2 = forecast::forecast(HoltWinters(gso.fire.ts.month.2.dif), h=h.monthly.2)
 
-dYhat.HW.monthly = HW.monthly$mean
+dYhat.HW.monthly.2 = HW.monthly.2$mean
 
-Yhat.HW.monthly = cumsum(c(train.monthly[length(train.monthly)],dYhat.HW.monthly))
-Yhat.HW.monthly = ts(Yhat.HW.monthly, start = c(2019,12), frequency=12)
-Combination.monthly = (ARIMA.monthly[["mean"]] + Yhat.combo.monthly + Yhat.HW.monthly)/3
-true.count.monthly = ts(gso.fire.ts.month.2, start=c(2019,12), end=c(2022,05), frequency=12)
+Yhat.HW.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)],dYhat.HW.monthly.2))
+Yhat.HW.monthly.2 = ts(Yhat.HW.monthly.2, start = c(2021,05), frequency=12)
+Combination.monthly.2 = (ARIMA.monthly.2[["mean"]] + Yhat.combo.monthly.2 + 
+                           Yhat.HW.monthly.2)/3
 
-autoplot(train.monthly) +
-  autolayer(true.count.monthly, series="True Count") + 
-  autolayer(Combination.monthly, series="Combination", alpha=0.8) +
-  autolayer(ARIMA.monthly, series="ARIMA", PI=F) +
-  autolayer(Yhat.combo.monthly, series="TBATS", alpha=0.7) +
-  autolayer(Yhat.HW.monthly, series="HoltWinters", alpha=0.7) + 
+y.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
+test.monthly = subset(y.monthly, start=length(y.monthly)-12)
+
+autoplot(train.monthly.2) +
+  autolayer(test.monthly, series="True Count") +
+  autolayer(Combination.monthly.2, series="Combination", alpha=0.8) +
+  autolayer(ARIMA.monthly.2, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo.monthly.2, series="TBATS", alpha=0.7) +
+  autolayer(Yhat.HW.monthly.2, series="HoltWinters", alpha=0.7) + 
   xlab("Date") +
   ylab("Frequency of Fire Incidents") +
   ggtitle("Time Series Combination for Monthly Frequency of Fire Incidents") + 
   theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
         title = element_text(size = 9)) 
 
-c(ARIMA = accuracy(ARIMA.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
-  TBATS = accuracy(Yhat.combo.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
-  HW = accuracy(Yhat.HW.monthly, gso.fire.ts.month.2)["Test set", "RMSE"],
+c(ARIMA = accuracy(ARIMA.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
+  HW = accuracy(Yhat.HW.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
   Combination =
-    accuracy(Combination.monthly, gso.fire.ts.month.2)["Test set", "RMSE"])
+    accuracy(Combination.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"])
+
+##########
 
 #######
 #Modeling of Response Time
