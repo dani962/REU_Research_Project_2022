@@ -75,6 +75,17 @@ gso.fire %>%
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalStaffOnIncident)) +
+  geom_histogram(bins = 25,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_y_log10() +
+  xlab("Total Staff on Incident") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Total Staff on Incident") +
+  theme_economist() +
+  xlim(0,25)
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
   count(CivilianInjuries) %>%
   mutate(nlog = log10(n)) %>%
   ggplot(aes(x = CivilianInjuries, y = nlog)) +
@@ -86,14 +97,25 @@ gso.fire %>%
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = TotalStaffOnIncident)) +
-  geom_histogram(bins = 25,show.legend = FALSE, color = "black", fill = "pink") +
-  scale_y_log10() +
-  xlab("Total Staff on Incident") +
+  count(CivilianFatalities) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = CivilianFatalities, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Civilian Fatalities") +
   ylab("Count (Log10 scale)") +
-  ggtitle("Distribution of Total Staff on Incident") +
-  theme_economist() +
-  xlim(0,25)
+  ggtitle("Distribution of Civilian Fatalities") +
+  theme_economist()
+
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(FireServiceInjuries) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = FireServiceInjuries, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Fire Service Injuries") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Fire Service Injuries") +
+  theme_economist()
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
@@ -404,7 +426,7 @@ gso.fire %>%
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = CivilianInjuries, y = response_time_seconds)) +
+  ggplot(aes(x = CivilianInjuries, y = response_time_seconds, group = CivilianInjuries)) +
   geom_violin(show.legend = FALSE, fill = "light blue") +
   geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
   xlab("Civilian Injuries") +
@@ -413,7 +435,7 @@ gso.fire %>%
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = CivilianFatalities, y = response_time_seconds)) +
+  ggplot(aes(x = CivilianFatalities, y = response_time_seconds, group = CivilianFatalities)) +
   geom_violin(show.legend = FALSE, fill = "light blue") +
   geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
   xlab("Civilian Fatalities") +
@@ -422,7 +444,7 @@ gso.fire %>%
 
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
-  ggplot(aes(x = FireServiceInjuries, y = response_time_seconds)) +
+  ggplot(aes(x = FireServiceInjuries, y = response_time_seconds, group = FireServiceInjuries)) +
   geom_violin(show.legend = FALSE, fill = "light blue") +
   geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
   xlab("Fire Service Injuries") +

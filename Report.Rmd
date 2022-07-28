@@ -1,6 +1,9 @@
 ---
 title: "Statistical Analysis of Fire Incidents in the City of Greensboro, NC"
-author: "Danielle Mirzaeian, Nahom Fisseha"
+author: 
+  - "Danielle Mirzaeian, Nahom Fisseha"
+  - "Faculty Research Mentor Dr. Sayed Mostafa"
+  - "Graduate Research Assistant Mentor Chinedu Jude Nzekwe"
 date: '2022-06-22'
 output:
   html_document: default
@@ -131,7 +134,7 @@ gso.fire %>%
   theme_economist()
 ```
 
-For the histogram above, we learned that the typical response time falls between about 100 seconds to 400 seconds and that the distribution is normal. 
+For the histogram above, we learned that the typical response time falls between about 100 seconds to 400 seconds and that the distribution is normal.
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
@@ -148,7 +151,7 @@ gso.fire %>%
 
 From the histogram above, we can visually see the distribution of the amount of staff members reported towards a given incident. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of total stall on incident is 4.
 
-```{r, , message=FALSE, warning=FALSE, echo=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   count(CivilianInjuries) %>%
@@ -163,7 +166,7 @@ gso.fire %>%
 
 For the graph above, we can identify that there are not many occasions in which civilians have reported injured. There has only been two incidents in which two or more civilian injuries occurred. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of civilian injuries is 0.
 
-```{r, , message=FALSE, warning=FALSE, echo=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   count(CivilianFatalities) %>%
@@ -381,7 +384,7 @@ gso.fire %>%
 
 From this scatter plot, we wanted to see if the number of staff on incident would affect the response time of the fire responders. The outcome of the graph shows that there is no significant change in response time when having more people on shift. The response time still falls between 100 and 600 seconds, no matter the number of responders.
 
-```{r,  message=FALSE, warning=FALSE, echo=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(y = PropertyLoss, x = response_time_seconds)) +
@@ -393,9 +396,9 @@ gso.fire %>%
   theme_economist()
 ```
 
-From the scatter plot above, we wanted to visualize the relationship between response time and property loss. Through this we were able to identify a very slight correlation between the two. The majority of the higher property loss values fall between 100 and 400 seconds.
+From the scatter plot above, we wanted to visualize the relationship between response time and property loss. Through this we were able to identify a very slight correlation between the two. The majority of the higher property loss values fall between 100 and 400 seconds
 
-```{r,  message=FALSE, warning=FALSE, echo=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(y = TotalLosses, x = response_time_seconds)) +
@@ -408,8 +411,6 @@ gso.fire %>%
 ```
 
 From the scatter plot above, we wanted to visualize the relationship between response time and total loss. Through this we were able to identify a very slight correlation between the two. Similar to property loss, the majority of the higher total loss values fall between 100 and 400 seconds.
-
-
 
 Below, the box and violin plots had similar results to the bar graphs presented earlier. Each graph will summarize briefly what have seen before.
 
@@ -522,7 +523,7 @@ gso.fire %>%
 
 For the graph above, we can see the how each level of civilian injury various in relations to response time.
 
-```{r,  message=FALSE, warning=FALSE, echo=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>%
   ggplot(aes(x = CivilianFatalities, y = response_time_seconds, group = CivilianFatalities)) +
@@ -547,7 +548,6 @@ gso.fire %>%
 ```
 
 For the graph above, we can see the how each level of fire service injury various in relations to response time.
-
 
 ### Time Series Visualization
 This section contains the visualization of all the data of the fire incidents in Greensboro, NC from July 1, 2010 to May 31, 2022.
@@ -665,18 +665,22 @@ After checking for stationarity we could begin forecasting.
 y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats = tbats(y.dif)
 daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+
 #point forecast values
 dif.Yhat = daily.dif.tbats.fc$mean
 dif.Yhat.upper = daily.dif.tbats.fc$upper
 dif.Yhat.lower = daily.dif.tbats.fc$lower
+
 Yhat = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
 Yhat = ts(Yhat, start = c(2022, 152), frequency=365)
 Yhat_upper = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
 Yhat_upper = ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
 Yhat_lower = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower = ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+
 fire.ts = ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
               frequency = 360) # A 360 day trim to see forecast better
+
 #TBAT forecasting
 autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
@@ -684,6 +688,7 @@ autoplot(fire.ts) +
   xlab("Date") +
   ylab("Frequency of Fire Incidents") + 
   theme(title = element_text(size = 10), legend.position = "bottom")
+
 ```
 
 ```{r, echo=FALSE}
@@ -691,11 +696,9 @@ autoplot(fire.ts) +
 accuracy(daily.dif.tbats)
 ```
 
-
 We used the Exponential smoothing state space model with Box-Cox transformation, ARMA errors, Trend and Seasonal components (TBATS model) because it is a popular model that tends to perform well at forecasting time series.
 
 For the plot above, we used the whole data set, from July 1, 2010 to May 31, 2022. We planned to forecast the fire incidents from June 1, 2010 to December 31, 2022. From the plot we can see that the TBATS was doing well, it seemed to predict a slow big dip that would eventually start going up again before 2022 ended. The dip though seems to go below the average at one point.
-
 
 ```{r, echo=FALSE}
 #ARIMA forecasting
@@ -724,12 +727,15 @@ gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
                                  frequency = 365)
 #attempt at differencing
 gso.fire.ts.3.dif = diff(gso.fire.ts.3)
+
 y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats.3 = tbats(y.dif.3)
 daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
 dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
+
 Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
 Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
+
 gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                     frequency = 365)
 #TBAT forecasting
@@ -809,10 +815,12 @@ Now that the monthly data is stationary we can being forecasting.
 y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
 dif.tbats.month = tbats(y.dif.month)
 dif.tbats.month.fc = forecast::forecast(dif.tbats.month, h = 8)
+
 #point forecast values
 dif.Yhat.month = dif.tbats.month.fc$mean
 Yhat.month = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dif.Yhat.month))
 Yhat.month = ts(Yhat.month, start = c(2022, 05), frequency=12)
+
 #TBATS forecasting
 autoplot(gso.fire.ts.month.2) + 
   autolayer(Yhat.month, series="Point Forecasts") + 
@@ -851,11 +859,13 @@ In the plot above, it can be seen that the ARIMA model was producing similar spi
 
 ```{r, echo=FALSE}
 #HoltWinters forecasting
-dif.monthly.holt <- HoltWinters(gso.fire.ts.month.2.dif)
-dif.fcast.monthly <- forecast::forecast(dif.monthly.holt, h=8, level=c(80,95))
-dYhat.Holt <- dif.fcast.monthly$mean
-Yhat.Holt <- cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.Holt))
-Yhat.Holt <- ts(Yhat.Holt, start = c(2022, 05), frequency=12)
+dif.monthly.holt = HoltWinters(gso.fire.ts.month.2.dif)
+dif.fcast.monthly = forecast::forecast(dif.monthly.holt, h=8, level=c(80,95))
+dYhat.Holt = dif.fcast.monthly$mean
+
+Yhat.Holt = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.Holt))
+Yhat.Holt = ts(Yhat.Holt, start = c(2022, 05), frequency=12)
+
 autoplot(gso.fire.ts.month.2) +
   autolayer(Yhat.Holt, series = "Point Forecasts") +
   ggtitle("Forecasts of Monthly Frequency of Fire Incidents using HoltWinters") +
@@ -881,15 +891,19 @@ dif.training.tbats.2 = subset(y.dif.2, end=length(y.dif.2)-151)
 dif.test.tbats.2 = subset(y.dif.2, start=length(y.dif.2)-150)
 dif.daily.train.tbats.2 = tbats(dif.training.tbats.2)
 dif.train.fc = forecast(dif.daily.train.tbats.2, h=151)
+
 #getting point forecasts 
 dYhat.tbats = dif.train.fc$mean
+
 #setting up normal ts training and test sets 
 y.2 <- msts(gso.fire.ts.2, seasonal.periods=c(7,365.25))
 training.tbats.2 <- subset(y.2, end=length(y.2)-151)
 test.tbats.2 <- subset(y.2, start=length(y.2)-150)
+
 #reverting back to original points   
 Yhat.tbats <- cumsum(c(training.tbats.2[length(training.tbats.2)], dYhat.tbats))
 Yhat.tbats <- ts(Yhat.tbats, start = c(2022, 1), frequency = 365)
+
 autoplot(training.tbats.2) + 
   autolayer(Yhat.tbats, series="Point Forecasts") + 
   autolayer(test.tbats.2, series="Test Set", alpha = 0.7) + 
@@ -898,6 +912,7 @@ autoplot(training.tbats.2) +
   ylab("Frequency of Fire Incidents") +
   coord_cartesian(xlim = c(2020, 2023)) +
   theme(legend.position = "bottom")
+
 #checking accuracy
 dif.daily.test.tbats.2 <- tbats(dif.test.tbats.2)
 accuracy(dif.daily.test.tbats.2)
@@ -913,6 +928,7 @@ training.arima = subset(gso.fire.ts.2, end=length(gso.fire.ts.2)-151)
 test.arima = subset(gso.fire.ts.2, start=length(gso.fire.ts.2)-150)
 daily.train.arima = auto.arima(training.arima)
 fc.train.arima = forecast(daily.train.arima, h=151)
+
 autoplot(fc.train.arima) + 
   autolayer(test.arima, series="Test Set", alpha = 0.7) + 
   ggtitle("Multi-Step ARIMA Daily Forecasts of Frequency of Fire Incidents") + 
@@ -920,6 +936,7 @@ autoplot(fc.train.arima) +
   ylab("Frequency of Fire Incidents") + 
   coord_cartesian(xlim = c(2020, 2023)) +
   theme(legend.position = "bottom")
+
 daily.test.arima = arima(test.arima)
 accuracy(daily.test.arima)
 ```
@@ -930,12 +947,15 @@ From the visual above, the data was again split into a training set and a test s
 #time series combination
 train = window(gso.fire.ts.2, end=c(2019, 12))
 h = length(gso.fire.ts.2) - length(train)
+
 #ARIMA model 
 ARIMA = forecast::forecast(auto.arima(train, lambda=0, biasadj=TRUE), h=h)
+
 #TBATS model 
 train.tbats = msts(gso.fire.ts.2.dif, end=c(2019,12), seasonal.periods = c(7,365.25))
 TBATS = forecast::forecast(tbats(train.tbats, biasadj = TRUE), h=h)
 dYhat.combo = TBATS$mean
+
 Yhat.combo = cumsum(c(train[length(train)], dYhat.combo))
 Yhat.combo = ts(Yhat.combo, start = c(2019, 12), frequency = 365)
 Combination = (ARIMA[["mean"]] + Yhat.combo)/2
@@ -944,6 +964,7 @@ true.daily = gso.fire.ts %>%
 true.daily.ts = ts(true.daily$n, 
                             start = c(2019,12), end = c(2021,153), 
                             frequency = 365)
+
 autoplot(train) +
   autolayer(true.daily.ts) +
   autolayer(Combination, series="Combination", alpha=0.8) +
@@ -953,10 +974,12 @@ autoplot(train) +
   ylab("Frequency of Fire Incidents") +
   ggtitle("Time Series Combination for Daily Frequency of Fire Incidents") + 
   theme(legend.position = "bottom")
+
 c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
   TBATS = accuracy(Yhat.combo, gso.fire.ts.2)["Test set", "RMSE"],
   Combination =
     accuracy(Combination, gso.fire.ts.2)["Test set", "RMSE"])
+
 ```
 
 As can be seen above, the data was split into training and test sets with the same dates as the two previous plots. From the results it can be seen that the TBATS model did not do that well and predicted a bigger decrease than what actually happened with the actual data.
@@ -965,6 +988,7 @@ From the accuracy function, we can see that the ARIMA and Combination models did
 
 ```{r, echo=FALSE}
 #multi-step forecasting for monthly data
+
 #multi-step TBATS
 y2.dif.monthly = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
 dif.training.tbats.2.monthly = subset(y2.dif.monthly, end=length(y2.dif.monthly)-5)
@@ -975,9 +999,11 @@ dYhat.ms.tbats.monthly = dif.fc.train.tbats.2.monthly$mean
 y2.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
 training.tbats.monthly.2 = subset(y2.monthly, end=length(y2.monthly)-5)
 test.tbats.monthly.2 = subset(y2.monthly, start=length(y2.monthly)-4)
+
 Yhat.ms.tbats.monthly = cumsum(c(training.tbats.monthly.2[length(training.tbats.monthly.2)],
                                  dYhat.ms.tbats.monthly))
 Yhat.ms.tbats.monthly = ts(Yhat.ms.tbats.monthly, start = c(2022,01), frequency=12)
+
 autoplot(training.tbats.monthly.2) + 
   autolayer(Yhat.ms.tbats.monthly, series="Point Forecasts") + 
   autolayer(test.tbats.monthly.2, series="Test Set", alpha = 0.7) + 
@@ -995,7 +1021,7 @@ accuracy(dif.test.tbats.2.monthly)
 
 For this plot, it can be seen that the TBATS model did not expect such a big dip in the true data but it still predicted values that appear to fit well with the plot.
 
-From the accuracy function, we had a root mean squared error of 170.92, which is pretty high but that is because of the big dip in the true data that th TBATS model was not able to predict.
+From the accuracy function, we had a root mean squared error of 170.92, which is pretty high but that is because of the big dip in the true data that the TBATS model was not able to predict.
 
 ```{r, echo=FALSE}
 #multi-step ARIMA
@@ -1003,6 +1029,7 @@ training.arima.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.mont
 test.arima.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
 train.arima.monthly.3 = auto.arima(training.arima.monthly)
 fc.train.arima.monthly = forecast(train.arima.monthly.3, h=5)
+
 autoplot(fc.train.arima.monthly) + 
   autolayer(test.arima.monthly, series="Test Set", alpha = 0.7) + 
   ggtitle("Multi-Step ARIMA Monthly Forecasts of Frequency of Fire Incidents") + 
@@ -1029,12 +1056,15 @@ dif.training.HW.monthly = subset(gso.fire.ts.month.2.dif, end=length(gso.fire.ts
 dif.test.HW.monthly = subset(gso.fire.ts.month.2.dif, start=length(gso.fire.ts.month.2.dif)-4)
 dif.train.HW.monthly = HoltWinters(dif.training.HW.monthly)
 dif.fc.HW = forecast::forecast(dif.train.HW.monthly, h=5)
+
 dYhat.ms.HW = dif.fc.HW$mean
 Yhat.ms.HW = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.ms.HW))
 Yhat.ms.HW = ts(Yhat.ms.HW, start = c(2022,01,01), frequency=12)
+
 training.HW.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
 test.HW.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
 true.count.monthly = ts(gso.fire.ts.month.2, start=c(2010,07,01), end=c(2021,12,31), frequency=12)
+
 autoplot(training.HW.monthly) + 
   autolayer(Yhat.ms.HW, series = "Point Forecasts") + 
   autolayer(test.HW.monthly, series = "Test Set") + 
@@ -1057,25 +1087,33 @@ From the accuracy function, the root mean squared error was 134.55, which is sig
 #Time series combination for monthly
 train.monthly.2 = window(gso.fire.ts.month.2, end=c(2021, 05))
 h.monthly.2 = length(gso.fire.ts.month.2) - length(train.monthly.2)
+
 #ARIMA model 
 ARIMA.monthly.2 = forecast::forecast(auto.arima(train.monthly.2, lambda=0, biasadj=TRUE),
                                    h=h.monthly.2)
+
 #TBATS model 
 train.tbats.monthly.2 = msts(gso.fire.ts.month.2.dif, end=c(2021,05), seasonal.periods = 12)
 tbats.monthly.2 = forecast::forecast(tbats(train.tbats.monthly.2, biasadj = TRUE),
                                      h=h.monthly.2)
 dYhat.combo.monthly.2 = tbats.monthly.2$mean
+
 Yhat.combo.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)], dYhat.combo.monthly.2))
 Yhat.combo.monthly.2 = ts(Yhat.combo.monthly.2, start = c(2021,05), frequency = 12)
+
 #HoltWinters Model 
 HW.monthly.2 = forecast::forecast(HoltWinters(gso.fire.ts.month.2.dif), h=h.monthly.2)
+
 dYhat.HW.monthly.2 = HW.monthly.2$mean
+
 Yhat.HW.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)],dYhat.HW.monthly.2))
 Yhat.HW.monthly.2 = ts(Yhat.HW.monthly.2, start = c(2021,05), frequency=12)
 Combination.monthly.2 = (ARIMA.monthly.2[["mean"]] + Yhat.combo.monthly.2 + 
                            Yhat.HW.monthly.2)/3
+
 y.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
 test.monthly = subset(y.monthly, start=length(y.monthly)-12)
+
 autoplot(train.monthly.2) +
   autolayer(test.monthly, series="True Count") +
   autolayer(Combination.monthly.2, series="Combination", alpha=0.8) +
@@ -1087,6 +1125,7 @@ autoplot(train.monthly.2) +
   ggtitle("Time Series Combination for Monthly Frequency of Fire Incidents") + 
   theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
         title = element_text(size = 9)) 
+
 c(ARIMA = accuracy(ARIMA.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
   TBATS = accuracy(Yhat.combo.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
   HW = accuracy(Yhat.HW.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
@@ -1137,9 +1176,10 @@ Then we used the stepwise regression for our first method of variable selection.
 ```{r, echo=FALSE}
 lm.res.time.select = stepAIC(lm.res.time)
 summary(lm.res.time.select)
+
 ```
 
-From this result we are able to see in further in detail which components effect response time and at what level due to the stepwise regression model eliminating the components that have little to no impact on response time. 
+From this result we are able to see in further in detail which components affect response time and at what level due to the stepwise regression model eliminating the components that have little to no impact on response time. 
 
 After that we also tried LASSO variable selection using the glmnet function.
 
@@ -1155,13 +1195,15 @@ As an alternative to our linear regression models we ran a tree based random for
 
 ```{r, echo=FALSE}
 gso.fire.filtered.rf = gso.fire.filtered %>%
-  dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
-           shift , Month , AlarmTime , NatureCode)
+  dplyr::select(response_time_seconds, TotalStaffOnIncident, FireDistrict, DayOfWeek, shift, Month, AlarmTime, NatureCode)
+
 RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
                          shift + Month + AlarmTime + NatureCode,
                        data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+
 variable = names(RF.Mod.Ranger$variable.importance)
 rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
+
 ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
   geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
   ylab("Variable Importance")+
@@ -1610,8 +1652,10 @@ gso.fire.ts %>%
 ```{r, eval=FALSE}
 incidents_annual = gso.fire.ts %>%
   separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day"))
+
 incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
 colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
+
 incidents_annual %>%
   ggplot(aes(x = AlarmDate2, y = n)) + 
   ggtitle("Time Series Plots for Frequency of Daily Fire Incidents Organized by Year") + 
@@ -1656,29 +1700,36 @@ ndiffs(gso.fire.ts.2)
 ndiffs(gso.fire.ts.2)
 acf(gso.fire.ts.2)
 summary(ur.kpss(gso.fire.ts.2))
+
 #attempt at differencing
 gso.fire.ts.2.dif = diff(gso.fire.ts.2)
 acf(gso.fire.ts.2.dif)
+
 cbind("Fire Incidents" = gso.fire.ts.2,
       "First differenced" = diff(gso.fire.ts.2)) %>%
   autoplot(facets=TRUE) +
   xlab("Date") + ylab("") +
   ggtitle("Stationarity Transformations of Daily Fire Incidents")
+
 y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats = tbats(y.dif)
 daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+
 #point forecast values
 dif.Yhat = daily.dif.tbats.fc$mean
 dif.Yhat.upper <- daily.dif.tbats.fc$upper
 dif.Yhat.lower <- daily.dif.tbats.fc$lower
+
 Yhat <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
 Yhat <- ts(Yhat, start = c(2022, 152), frequency=365)
 Yhat_upper <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
 Yhat_upper <- ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
 Yhat_lower <- cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
 Yhat_lower <- ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+
 fire.ts <- ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
               frequency = 360) # A 360 day trim to see forecast better
+
 #TBAT forecasting
 autoplot(fire.ts) + 
   autolayer(Yhat, series="Point Forecasts") + 
@@ -1704,12 +1755,15 @@ gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
                                  frequency = 365)
 #attempt at differencing
 gso.fire.ts.3.dif = diff(gso.fire.ts.3)
+
 y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
 daily.dif.tbats.3 = tbats(y.dif.3)
 daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
 dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
+
 Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
 Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
+
 gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
                     frequency = 365)
 #TBAT forecasting
@@ -1739,18 +1793,24 @@ Forecasting for monthly number of fire incidents.
 #convert gso.fire.ts.month to official ts object
 gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
                           frequency = 12)
+
 #looking at stationarity
 acf(gso.fire.ts.month.2)
 summary(ur.kpss(gso.fire.ts.month.2))
+
 ndiffs(gso.fire.ts.month.2) #1
 nsdiffs(gso.fire.ts.month.2) #0
+
 #attempt at differencing
 gso.fire.ts.month.2.dif = diff(gso.fire.ts.month.2)
+
 #looking at stationarity for difference
 acf(gso.fire.ts.month.2.dif)
+
 summary(ur.kpss(gso.fire.ts.month.2.dif))
 ndiffs(gso.fire.ts.month.2.dif) #0
 nsdiffs(gso.fire.ts.month.2.dif) #0
+
 cbind("Fire Incidents" = gso.fire.ts.month.2,
       "First differenced" = diff(gso.fire.ts.month.2)) %>%
   autoplot(facets=TRUE) +
@@ -1764,6 +1824,7 @@ cbind("Fire Incidents" = gso.fire.ts.month.2,
 gso.fire.filtered = gso.fire %>%
   filter(response_time_seconds < cutoff.response_time) %>% 
   dplyr::select(response_time_seconds, everything())
+
 gso.fire.filtered = gso.fire.filtered %>%
   mutate(AlarmTime = case_when(AlarmHour >= 0 & AlarmHour < 6 ~ "0-5", 
                                AlarmHour >= 6 & AlarmHour < 12 ~ "6-11",
@@ -1800,11 +1861,14 @@ plot(las.Mod)
 gso.fire.filtered.rf = gso.fire.filtered %>%
   dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
            shift , Month , AlarmTime , NatureCode)
+
 RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
                          shift + Month + AlarmTime + NatureCode,
                        data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+
 variable = names(RF.Mod.Ranger$variable.importance)
 rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
+
 ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
   geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
   ylab("Variable Importance")+
