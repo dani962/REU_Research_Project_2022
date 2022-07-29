@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Abstract
+The research in this report examines twelve years of reported fire incidents in Greensboro, NC to further analyze how fire service response time is affected as well as how fire service response time affects the rate of total loss in household fires. Additionally, this report will provide a variety of forecasting models in order to predict the future in regards to reported fire incidents. To produce sufficient results a variety of statistical analysis approaches have been accomplished. We have visualized the data (univariate , bivariate, time series), forecasted the data (TBATS, ARIMA, Holtwinters), and built linear regression and random forest models in order to fully conquer the research questions at task. In result, we were able to identify what factors hold most significance in relation to response time as well as depict to what extent response time affects total loss. In addition we produced multiple forecasting models in order to accurately predict the future of reported fire incidents in Greensboro, NC. 
 
 ## Introduction
 Many calls are made to fire departments all the time. Whether it is a false alarm or not, it is important for first responders to take care of fire incidents as soon as possible. Therefore it is important to look at data about different fire incidents and see how the response time can be improved for all kinds of situations.
