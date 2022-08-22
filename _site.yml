@@ -1,0 +1,6 @@
+name: "my-website"
+navbar:
+  title: "Statistical Analysis of Fire Incidents in the City of Greensboro, NC"
+  left:
+    - text: "Project Report"
+      href: Report.html
