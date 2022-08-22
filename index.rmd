@@ -1,0 +1,2341 @@
+---
+title: "Statistical Analysis of Fire Incidents in the City of Greensboro, NC"
+author: 
+  - "Danielle Mirzaeian, Nahom Fisseha"
+  - "Faculty Research Mentor Dr. Sayed Mostafa"
+  - "Graduate Research Assistant Mentor Chinedu Jude Nzekwe"
+date: '2022-06-22'
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, echo= FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Abstract
+The research in this report examines twelve years of reported fire incidents in Greensboro, NC to further analyze how fire service response time is affected as well as how fire service response time affects the rate of total loss in household fires. Additionally, this report will provide a variety of forecasting models in order to predict the future in regards to reported fire incidents. To produce sufficient results a variety of statistical analysis approaches have been accomplished. We have visualized the data (univariate , bivariate, time series), forecasted the data (TBATS, ARIMA, Holtwinters), and built linear regression and random forest models in order to fully conquer the research questions at task. In result, we were able to identify what factors hold most significance in relation to response time as well as depict to what extent response time affects total loss. In addition we produced multiple forecasting models in order to accurately predict the future of reported fire incidents in Greensboro, NC. 
+
+
+## Introduction
+Many calls are made to fire departments all the time. Whether it is a false alarm or not, it is important for first responders to take care of fire incidents as soon as possible. Therefore it is important to look at data about different fire incidents and see how the response time can be improved for all kinds of situations.
+
+There are all kinds of fire incidents, some not even about fires. For example someone could be having a stroke and the local fire department was called to take action on the situation. If the incident is a fire, it could be at all kinds of different properties. Some different properties are small houses, apartment buildings, and highways. The fire could vary in size, like the wildfires in California.
+
+No matter the type of fire incident. It is vital that first responders attend to the situation quickly. Now, there can be some factors that can affect the response time of the first responders. Some of those factors are the location, the type of property, and the type of the incident. From this project we want to explore which factors from the data have a significant affect on the response time of the fire department. By learning about these factors, the fire department could use this information to work on decreasing their response time.
+
+For more than ten years, the city of Greensboro, NC has been collecting data on fire incidents in their area. Some of this data includes the date of the incident, the response time, the location, and the type of property. Yet, take note when looking at the data that it goes from July 1, 2010, to May 31, 2022. So for the years 2010 and 2022, only data for about half of those years was collected.
+
+For this project we will be visualizing the fire incidents in Greensboro, NC. Our research questions are 1) What factors affect the response time to fire incidents? 2) How to improve the response time? 3) How does response time by fire emergency services affect the rate of total loss and civilian injuries? 4)Can we build models to forecast the number of fire incidents in certain areas of Greensboro based on the data from 2010 to 2022? 5) What Dynamic models can we make for forecasting fire incidents?
+
+## Related Literature
+Prior to beginning this study we sought to obtain as much knowledge from previous similar reports as possible. In this process we were able to acquire multiple different reports from a variety of similar topics ranging from observing response time to forecasting mass fires . With this, each report had its own distinct way of coming to a solution.
+
+To begin our review of previous reports we first analyzed several reports regarding the observation of response time. In a report that analyzed fire service response time by Aleisa and Savsar (2014), they wanted to create a discrete event simulation that reduces the response time to fire incidents to below five minutes. It was concluded that with the introduction of centralized systems and navigation technology response time was able to be reduced by 32%. Buffington and Ezekoye (2018) did a research project about analyzing the relationship between fire service response times and fire outcomes. While using the NFIRS dataset they were able to conclude that on average, increasing response times are linked to increasing monetary losses at a rate of about 3000 USD per minute for the interval between 3-13min. Similarly, Neil Challands (2010) also wrote a paper analyzing the same relationship. He used plots of various types to analyze the different types of fires and their relationship to response time. He found that response time significantly affects the amount of structural damage. In another report written by KC and Corcoran (2017) they looked at how spatial patterns of residential fire incidents affect response time and what factors explain those spatial patterns. In their modeling they looked at 12 variables. Some of those are Winter(Incidents during the winter), socioeconomic disadvantage, street connectivity, and fire station distance. They found that response time tends to increase from factors like winter weather, places with high numbers of children and low socioeconomic households. Most importantly, their results showed that low street connectivity had the biggest impact on response time. In addition, some students from Vanderbilt University (2017) wanted to solve the problem of having efficient response time for highly populated areas. They approached this by creating a non-linear mathematical program that optimized the expected incident coverage and proposing an algorithmic framework to solve the issue. 
+
+We then continued to review previous reports in regards to forecasting fires. Similar to our approach we found a group of students from the Data Science program at the University of San Francisco (2019) who were able to use linear regression in machine learning to predict and analyze response times for the San Francisco Fire Department.  Another report written by Li, Zhang, and Fu (2022) they wanted to learn how to use drones to monitor and eliminate forest fire incidents in Victoria. One thing they did in this paper that is related to a part of our research was building a forecasting model that predicted the following 10 years of forest fires in Australia through K-means clustering algorithms and time series forecasting (SARIMA). With that information from the time series forecasting, they estimated the increase in the expense of one drone over ten years.
+
+Although multiple studies have sought to capture the analytics behind many different aspects in regards to fire incidents, not many have gone completely in-depth in terms of covering fully what factors can affect a given fire department in terms of fire service response time. In this report we aim to completely cover all given factors that may affect fire service response time and how response time affects the rate of total loss in Greensboro, NC. Additionally, to help the Greensboro Fire Department be better prepared for dealing with future fire incidents in the city, we will build a variety of models to forecast the future daily and weekly number of fire incidents in the city.
+
+## Data, Methods, and Analysis
+
+### Data
+For this analysis, we utilized public data from the Greensboro Fire Department. This data set accounts for all reported fire incidents in the city of Greensboro and updates itself continuously. Although, we noticed there were some missing values in the data. So we did a map to check the percentage of missing values and it ended being about 14 percent for the whole data set. To further cater towards our research we filtered the data set in two areas; the date (from July 1, 2010 to May 31st, 2022) and the Property Use ("1-2 family dwelling"). In addition to this we converted ResponseTime to seconds. The initial data set can be found at this website link:https://data.greensboro-nc.gov/datasets/greensboro-fire-incidents/explore
+
+### Methods
+
+#### Exploratory Data Analysis
+The first step in our research project was exploratory data analysis. During this process we investigated the data looking for patterns and outliers. This was carried out by making various graphical representations of the data.
+
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(readr)
+library(lubridate)
+library(ggplot2)
+library(dslabs)
+library(dplyr)
+library(ggrepel)
+library(ggthemes)
+library(broom)
+library(glmnet)
+library(MASS)
+library(tidyverse)
+library(Amelia)
+library(mice)
+library(caret)
+library(forecast)
+library(urca)
+library(randomForest)
+library(ranger)
+library(astsa)
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+gso.fire <- read_csv("Greensboro_Fire_Incidents.csv")
+```
+
+
+```{r, echo = FALSE}
+gso.fire = 
+  gso.fire %>%
+  mutate(AlarmDate2 = make_date(Year, Month, Day)) %>%
+  filter(AlarmDate2 < '2022-06-01')
+```
+
+
+```{r, echo = FALSE}
+gso.fire = gso.fire %>%
+  filter(PropertyUse == '419 - 1 or 2 family dwelling')
+```
+
+
+```{r, echo = FALSE}
+gso.fire = gso.fire %>%
+  mutate(call_process_period = lubridate::hms(CallProcessingTime), 
+         call_process_seconds = period_to_seconds(call_process_period))
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+gso.fire = gso.fire %>%
+  mutate(response_time_period = lubridate::hms(ResponseTime),
+         response_time_seconds = period_to_seconds(response_time_period))
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+gso.fire = gso.fire %>%
+  mutate(total_response_period = lubridate::hms(TotalResponseTime),
+         total_response_seconds = period_to_seconds(total_response_period))
+```
+
+
+```{r, echo = FALSE}
+cutoff.response_time = gso.fire %>% 
+  dplyr::select(response_time_seconds) %>%
+  filter(!is.na(response_time_seconds)) %>%
+  summarize(c = quantile(response_time_seconds, .75) + 3 * IQR(response_time_seconds)) %>%
+  pull(c)
+```
+
+
+#### Univariate Explorations
+Data Visualizations consisting of one variable
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = response_time_seconds)) +
+  geom_histogram(show.legend = FALSE, color = "black", fill = "pink") +
+  xlab("Response Time (Seconds)") +
+  ylab("Count") +
+  ggtitle("Distribution of Response Time") +
+  theme_economist()
+```
+
+For the histogram above, we learned that the typical response time falls between about 100 seconds to 400 seconds and that the distribution is normal.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalStaffOnIncident)) +
+  geom_histogram(bins = 25,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_y_log10() +
+  xlab("Total Staff on Incident") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Total Staff on Incident") +
+  theme_economist() +
+  xlim(0,25)
+```
+
+From the histogram above, we can visually see the distribution of the amount of staff members reported towards a given incident. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of total stall on incident is 4.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(CivilianInjuries) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = CivilianInjuries, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Civilian Injuries") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Civilian Injuries") +
+  theme_economist()
+```
+
+For the graph above, we can identify that there are not many occasions in which civilians have reported injured. There has only been two incidents in which two or more civilian injuries occurred. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of civilian injuries is 0.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(CivilianFatalities) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = CivilianFatalities, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Civilian Fatalities") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Civilian Fatalities") +
+  theme_economist()
+```
+
+For the graph above, we can identify that there has only been a couple incidents in which fatalities have been reported in regards to civilians. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of civilian fatalities is 0.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(FireServiceInjuries) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = FireServiceInjuries, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Fire Service Injuries") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Fire Service Injuries") +
+  theme_economist()
+```
+
+For the graph above, we can identify that there has only been a handful of incidents in which injuries have been reported in regards to fire service respondents. It is important to note that the Y-axis on this graph has been scaled. Overall, the great majority of fire service injuries is 0.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = PropertyLoss)) +
+  geom_histogram(bins = 20,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_x_log10() +
+  xlab("Property Loss (Log10 scale)") +
+  ylab("Count") +
+  ggtitle("Distribution of Property Loss") +
+  theme_economist() 
+```
+
+The histogram above displays the amount of property loss across the amount of incidents reported.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalLosses)) +
+  geom_histogram(bins = 20,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_x_log10() +
+  xlab("Total Loss (Log10 scale)") +
+  ylab("Count") +
+  ggtitle("Distribution of Total Loss") +
+  theme_economist() 
+```
+
+The histogram above displays the amount of total loss (property + content) across the amount of incidents reported.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  ggplot(aes(x = AlarmHour)) +
+  geom_bar(color = "black", fill = "pink") +
+  scale_x_continuous(breaks = seq(0,23,1)) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  xlab("Alarm Hour") +
+  ylab("Count") +
+  ggtitle("Frequency of Fire Alarms by Alarm Hour")
+```
+
+From this bar graph, it can be seen that the frequency of calls to the fire stations are less during the middle of the night and increase as people start waking up.
+
+
+```{r, echo=FALSE}
+gso.fire %>%
+  count(station) %>%
+  mutate(station = reorder(station, n)) %>%
+  ggplot(aes(x = station, y = n)) +
+  geom_bar(stat = "identity", color = "black", fill = "pink") +
+  theme(axis.text.y = element_text(size = 6)) +
+  xlab("Fire Station (Station Number)") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Fire Station") +
+  coord_flip()
+```
+
+For this graph, we wanted to find out which fire stations got the most calls. Note that the calls counted are from July 1, 2010 to Jun 1, 2022. From the results we can tell that the top five fire stations that got the most calls over ten years in Greensboro NC, was 7, 8, 14, 4, and 56.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  count(FireDistrict) %>%
+  mutate(FireDistrict = reorder(FireDistrict, n)) %>%
+  ggplot(aes(x = FireDistrict, y = n)) +
+  geom_bar(stat = "identity", color = "black", fill = "pink") +
+  theme(axis.text.y = element_text(size = 6)) +
+  xlab("Fire District") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Fire District") +
+  coord_flip()
+```
+
+For this bar plot, we wanted to find out which fire districts got the most calls in Greensboro, NC over ten years. The fire districts consist of a few fire stations. The most popular fire districts from this bar plot from greatest to least were Battalion II, Battalion I and Battalion III.
+
+
+```{r, echo=FALSE}
+gso.fire %>%
+  count(Year) %>%
+  ggplot(aes(x = Year, y = n)) +
+  geom_bar(stat = "identity", fill = "pink", color = "black") +
+  scale_x_continuous(breaks = seq(2010,2022,1)) +
+  xlab("Year") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Year")
+```
+
+From this graph, we wanted to learn if there were some years that had a significant difference in number of phone calls to the fire stations in Greensboro, NC. By looking at those differences we could explore how response time varied between years that were busier than others. Note from this graph, that only half of the data was collected for the years 2010 and 2022, so those bars will be obviously lower than the bars of other years displayed in the graph.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  ggplot(aes(x = shift)) +
+  geom_bar(show.legend = FALSE, fill = "pink", color = "black") +
+  xlab("Shift") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Shift")
+```
+
+This visual was created to look at if the number of calls to the fire station would vary depending on which shift was currently working. For this data, there were three shifts, A, B, and C. From the results, it can be seen that there is no obvious difference in the frequency of the calls to the fire station on different work shifts.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  ggplot(aes(x = DayOfWeek)) +
+  geom_bar(fill = "pink", color = "black") +
+  xlab("Days of the Week") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Days of the Week")
+```
+
+From this bar graph, it can be seen that the frequency of calls to the fire station over ten years ended up being about the same between each day of the week with no obvious differences.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  ggplot(aes(x = Week)) +
+  geom_bar(fill = "pink", color = "black") +
+  scale_x_continuous(breaks = seq(1,53,1)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Week") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Week")
+```
+
+From the bar plot above, it is shown that the first week and the last week of the year typically had fewer calls to the fire station compared to other weeks in the year. This graph had a little more variability in frequency in calls. For example, the dip in the middle of the bar plot. This plot helps us to look at the busier times in the data and compare the response times.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  ggplot(aes(x = Month)) +
+  geom_bar(fill = "pink", color = "black") +
+  xlab("Month") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Month")
+```
+
+This visual was used to look further into if there was a higher frequency of calls to fire stations in certain parts of the year. From the results, June and February seem to have the lowest frequency of calls, while January and December have the highest frequency of calls. With this knowledge we can look at how response time varied with those months.
+
+#### Bivariate Explorations
+Data Visualizations of a given variable vs response time
+
+```{r, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = Week, y = response_time_seconds, group = Week)) +
+  geom_boxplot() +
+  scale_x_continuous(breaks = seq(1,53,1)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Week") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Week vs Response Time")
+```
+
+From this box plot, we wanted to see if certain weeks would have notable differences in response time. Looking at the results, there does not seem to be much variation. Therefore, the weeks in the year might not have a significant impact on response time.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = station, y = response_time_seconds)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Station") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Station vs Response Time")
+```
+
+The box plot above shows that there is a lot of variability in response time depending on which station responded to the call. By looking at these results, we can explore and question why different fire stations have such big contrasts in response time.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = NatureCode, y = response_time_seconds)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_boxplot() +
+  xlab("Nature Code") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Nature Code vs Response Time")
+```
+
+For this graph above, we looked at nature code and how it affects response time. Nature code represents the nature of the fire incident, whether it was a fire or someone having a stroke. As shown by the graph, there is a lot of variability in response time depending on the nature of the fire incident.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = response_time_seconds)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  xlab("Total Staff On Incident") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Total Staff on Incident vs Response Time") +
+  theme_economist()
+```
+
+From this scatter plot, we wanted to see if the number of staff on incident would affect the response time of the fire responders. The outcome of the graph shows that there is no significant change in response time when having more people on shift. The response time still falls between 100 and 600 seconds, no matter the number of responders.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = PropertyLoss, x = response_time_seconds)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Property Loss (Log10 scale)") +
+  xlab("Response Time (Seconds)") +
+  ggtitle("Property Loss vs Response Time") +
+  theme_economist()
+```
+
+From the scatter plot above, we wanted to visualize the relationship between response time and property loss. Through this we were able to identify a very slight correlation between the two. The majority of the higher property loss values fall between 100 and 400 seconds
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = TotalLosses, x = response_time_seconds)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Total Loss (Log10 scale)") +
+  xlab("Response Time (Seconds)") +
+  ggtitle("Total Loss vs Response Time") +
+  theme_economist()
+```
+
+From the scatter plot above, we wanted to visualize the relationship between response time and total loss. Through this we were able to identify a very slight correlation between the two. Similar to property loss, the majority of the higher total loss values fall between 100 and 400 seconds.
+
+Below, the box and violin plots had similar results to the bar graphs presented earlier. Each graph will summarize briefly what have seen before.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  filter(!is.na(response_time_seconds)) %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = DayOfWeek, y = response_time_seconds)) +
+  geom_violin(trim = FALSE, fill = "light blue") +
+  geom_boxplot(width = 0.3, fill = "pink") +
+  xlab("Days of the Week") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin & Box Plot of Response Time Densities by Days of the Week") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "hide")
+```
+
+For this violin and box plot, it can be seen that there is very little difference in response time between the days of the week.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = Year, y = response_time_seconds, group = Year)) +
+  geom_violin(trim = FALSE, fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .3, fill = "pink") +
+  scale_x_continuous(breaks = seq(2010,2022,1)) +
+  xlab("Year") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin & Box Plot of Response Time Densities by Year")
+```
+
+From the plot above there is a slight increase in the average response time after the year 2013 and it continues to stay the same or slightly increase more.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = shift, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Work shift") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Work Shift")
+```
+
+For this graph it can be seen that different work shifts did not affect the response time.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = FireDistrict, y = response_time_seconds)) +
+  geom_violin(fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .2, fill = "pink") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "hide") +
+  xlab("Fire District") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Fire District")
+```
+
+As shown by the graph, the response time varies depending on which fire district responded to the fire incident.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = Month, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .3, fill = "pink") +
+  xlab("Month") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Month")
+```
+
+For this box and violin plot, we learned that the time of month in the year has very little effect on the response time.
+
+```{r, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = AlarmHour, y = response_time_seconds, group = AlarmHour)) +
+  geom_violin(fill = "light blue") +
+  geom_boxplot(width = .3, fill = "pink") +
+  scale_x_continuous(breaks = seq(0,23,1)) +
+  xlab("Alarm Hour") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Alarm Hour")
+```
+
+From this visual, we learned that alarm hour has a slight effect on response time, as shown by the dips in the plot.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = NumberOfAlarms, y = response_time_seconds, group = NumberOfAlarms)) +
+  geom_violin(fill = "light blue") +
+  geom_boxplot(width = .3, fill = "pink") +
+  xlab("Number of Alarms") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Number of Alarms")
+```
+
+For the graph above, there would sometimes be a couple alarms set off for a fire incident, but it did not affect the response time whether the alarm was once or twice.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = CivilianInjuries, y = response_time_seconds, group = CivilianInjuries)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Civilian Injuries") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Civilian Injuries")
+```
+
+For the graph above, we can see the how each level of civilian injury various in relations to response time.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = CivilianFatalities, y = response_time_seconds, group = CivilianFatalities)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Civilian Fatalities") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Civilian Fatalities")
+```
+
+For the graph above, we can see the how each level of civilian fatality various in relations to response time.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = FireServiceInjuries, y = response_time_seconds, group = FireServiceInjuries)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Fire Service Injuries") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Fire Service Injuries")
+```
+
+For the graph above, we can see the how each level of fire service injury various in relations to response time.
+
+### Time Series Visualization
+This section contains the visualization of all the data of the fire incidents in Greensboro, NC from July 1, 2010 to May 31, 2022.
+
+#### Daily Time series
+
+```{r, echo=FALSE}
+gso.fire.ts = gso.fire %>%
+  count(AlarmDate2)
+```
+
+```{r, echo=FALSE}
+gso.fire.ts %>%
+  ggplot(aes(x = AlarmDate2, y = n)) +
+  geom_line() +
+  scale_x_date(date_labels = "%m-%Y", date_breaks = "6 month") + 
+  xlab("Year") +
+  ylab("Number of Fire Incidents") +
+  ggtitle("Time series of daily number of fire incidents") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Above is a time series plot of the daily number of fire incidents from July 1, 2010 to June 1st 2022. As shown by the plot, there were big spikes around 2014, 2018, and 2021.
+
+To take a deeper look into the time series below is the daily time series graphs for the years 2010 to 2022.
+
+```{r fig.width = 18, fig.height = 18, echo=FALSE}
+incidents_annual = gso.fire.ts %>%
+  separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day")) #%>%
+  #select(-Month)
+incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
+colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
+incidents_annual %>%
+  ggplot(aes(x = AlarmDate2, y = n)) + 
+  ggtitle("Time Series Plots for Frequency of Daily Fire Incidents From 2010 to 2022") + 
+  geom_line() + 
+  scale_x_date(date_labels = "%m-%Y", date_breaks = "1 month") + 
+  xlab("Date") + ylab("Count") + 
+  theme(axis.text.x = element_text(angle = 90, size = 14)) +
+  theme(axis.text.y = element_text(size = 14)) +
+  theme(plot.title = element_text(size=22)) +
+  theme(axis.title=element_text(size=18)) +
+  facet_wrap(~Year, scales = "free_x")
+```
+
+Above is the time series of the daily fire incidents broken into plots by year. From these graphs we have a clearer view of peaks for each year. So from the results, we can see that there were major peeks around April 2011, March 2014, October 2018, and February 2021.
+
+#### Monthly Time Series
+```{r, echo=FALSE}
+gso.fire.ts.month = gso.fire %>%
+  mutate(Monthly = make_date(Year, Month)) %>%
+  group_by(Monthly, Month, Year) %>%
+  count()
+```
+
+```{r, echo=FALSE}
+gso.fire.ts.month %>%
+  ggplot(aes(x = Monthly, y = n)) +
+  geom_line() +
+  scale_x_date(date_labels = "%m-%y", date_breaks = "6 month") + 
+  xlab("Date") +
+  ylab("Number of Fire Incidents") +
+  ggtitle("Time series of monthly number of fire incidents for 2010-2022") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Above is a time series graph depicting the number of monthly fire incidents from July 1, 2010 to May 31 2022. The graph shows an upward trend but with drastic drops occurring at dates like November of 2019 and November 2021.
+
+## Results
+### Time Series Forecasting
+
+#### Daily number of fire incidents from 2010 to 2022
+
+In order to forecast the data we had to convert it into time series objects with the ts function in R studio.
+```{r,echo=FALSE}
+gso.fire.ts.2 <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+                 frequency = 365)
+```
+
+Before forecasting we checked the data for stationarity. Meaning that we are checking that the time series has a constant mean and variance over time.
+
+To check if the data needs any first difference calculations then we used the ndiffs function. Also to check if there needs to be any seasonal difference calculations then we used the nsdiffs function.
+```{r}
+#determine the number of differences required for time series to be made stationary
+ndiffs(gso.fire.ts.2) #1
+nsdiffs(gso.fire.ts.2) #0
+```
+
+From the results, the data needs one difference, so we used the diff function to do that.
+
+Using the acf function we check that the data is stationary after we had done the first difference for the data.
+
+```{r}
+#attempt at differencing
+gso.fire.ts.2.dif = diff(gso.fire.ts.2)
+#checking stationarity of first difference
+acf(gso.fire.ts.2.dif)
+```
+
+Using the acf function we made sure that it did not take many lags to hit 0. From the results, the first difference made our data stationary.
+
+```{r, echo=FALSE}
+cbind("Fire Incidents" = gso.fire.ts.2,
+      "First differenced" = diff(gso.fire.ts.2)) %>%
+  autoplot(facets=TRUE) +
+  xlab("Date") + ylab("") +
+  ggtitle("Stationarity Transformations of Daily Frequency of Fire Incidents")
+```
+
+The plot above shows the daily time series graph before and after the first difference was calculated.
+
+After checking for stationarity we could begin forecasting.
+
+```{r, echo=FALSE}
+y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats = tbats(y.dif)
+daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+
+#point forecast values
+dif.Yhat = daily.dif.tbats.fc$mean
+dif.Yhat.upper = daily.dif.tbats.fc$upper
+dif.Yhat.lower = daily.dif.tbats.fc$lower
+
+Yhat = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
+Yhat = ts(Yhat, start = c(2022, 152), frequency=365)
+Yhat_upper = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
+Yhat_upper = ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
+Yhat_lower = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
+Yhat_lower = ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+
+fire.ts = ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
+              frequency = 360) # A 360 day trim to see forecast better
+
+#TBAT forecasting
+autoplot(fire.ts) + 
+  autolayer(Yhat, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Daily Frequency of Fire Incidents") +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(daily.dif.tbats)
+```
+
+We used the Exponential smoothing state space model with Box-Cox transformation, ARMA errors, Trend and Seasonal components (TBATS model) because it is a popular model that tends to perform well at forecasting time series.
+
+For the plot above, we used the whole data set, from July 1, 2010 to May 31, 2022. We planned to forecast the fire incidents from June 1, 2010 to December 31, 2022. From the plot we can see that the TBATS was doing well, it seemed to predict a slow big dip that would eventually start going up again before 2022 ended. The dip though seems to go below the average at one point.
+
+```{r, echo=FALSE}
+#ARIMA forecasting
+daily.arima = auto.arima(gso.fire.ts.2)
+daily.arima.fc = forecast(daily.arima, h=214)
+autoplot(daily.arima.fc) +
+  ggtitle("ARIMA Forecasting Model for Daily Frequency of Fire Incidents") +
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Frequency of Fire Incidents") + 
+  theme(title = element_text(size = 10))
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(daily.arima)
+```
+
+We also chose the Autoregressive Integrated Moving Average (ARIMA) model because it has been known to perform competently. Compared to the TBATS model, the ARIMA automatically calculates the differences, so those don't have to be done manually.
+
+For the plot above, there was a slight increase briefly and then after that the forecast created a horizontal line. The horizontal line appears to be close to the average line of the data.
+
+```{r, echo=FALSE}
+#this daily data ends three months earlier than true daily data
+gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
+                                 frequency = 365)
+#attempt at differencing
+gso.fire.ts.3.dif = diff(gso.fire.ts.3)
+
+y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats.3 = tbats(y.dif.3)
+daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
+dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
+
+Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
+Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
+
+gso.fire.ts.true <- ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+                    frequency = 365)
+#TBAT forecasting
+autoplot(gso.fire.ts.3) + 
+  autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
+  autolayer(Yhat.3, alpha=0.6, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Daily Frequency of Fire Incidents") +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(daily.dif.tbats.3)
+```
+
+In the plot above we can see that the TBATS model(light red) did not follow the true number of fire incidents(light blue). This appears to be because the data end three months earlier at March 1, 2022 to see how the predictions would appear. So around that time period there were some drastic drops in number of fire incidents which led to the TBATS model forecasting such a severe drop in incidents.
+
+```{r, echo=FALSE}
+#ARIMA forecasting
+daily.arima.3 = auto.arima(gso.fire.ts.3)
+daily.arima.fc.3 = forecast(daily.arima.3, h=671)
+autoplot(daily.arima.fc.3) + 
+  ggtitle("ARIMA Forecasting Model for Daily Frequency of Fire Incidents") +
+  xlab("Date") +
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Frequency of Fire Incidents") + 
+  theme(title = element_text(size = 10))
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(daily.arima.3)
+```
+
+From the plot above, there was an increase briefly and then the forecast created a horizontal line. Plus, the horizontal line appears to be close to the average line of the data. So when ended the data set three months earlier the ARIMA model did better than the TBATS for predicting number of future fire incidents.
+
+#### Monthly number of fire incidents from 2010 to 2022
+
+We again converted the data into a time series object us the ts function in order to use the functions for forecasting the time series data.
+```{r, echo=FALSE}
+gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01), frequency = 12)
+```
+
+Then we checked the monthly data for stationarity.
+
+We used the ndiffs and nsdiffs functions for checking if a first difference or seasonal difference had to be calculated
+```{r}
+ndiffs(gso.fire.ts.2) #1
+nsdiffs(gso.fire.ts.2) #0
+```
+
+So, our data needs one first difference and that is done with the diff function. After that, we used the acf function to make sure that the difference transformation made our data stationary.
+
+```{r, echo=FALSE}
+#attempt at differencing
+gso.fire.ts.month.2.dif = diff(gso.fire.ts.month.2)
+acf(gso.fire.ts.month.2.dif)
+```
+
+Using the acf function again we made sure that it did not take many lags to hit 0. From the results, the first difference made our data stationary.
+
+```{r, echo=FALSE}
+cbind("Fire Incidents" = gso.fire.ts.month.2,
+      "First differenced" = diff(gso.fire.ts.month.2)) %>%
+  autoplot(facets=TRUE) +
+  xlab("Date") + ylab("") +
+  ggtitle("Stationarity Transformation of Monthly Frequency of Fire Incidents")
+```
+
+The plot above shows the monthly time series graph before and after the first difference was calculated.
+
+Now that the monthly data is stationary we can being forecasting.
+
+```{r, echo=FALSE}
+y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
+dif.tbats.month = tbats(y.dif.month)
+dif.tbats.month.fc = forecast::forecast(dif.tbats.month, h = 8)
+
+#point forecast values
+dif.Yhat.month = dif.tbats.month.fc$mean
+Yhat.month = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dif.Yhat.month))
+Yhat.month = ts(Yhat.month, start = c(2022, 05), frequency=12)
+
+#TBATS forecasting
+autoplot(gso.fire.ts.month.2) + 
+  autolayer(Yhat.month, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Monthly Frequency of Fire Incidents") +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=10), 
+        legend.position = "bottom") 
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(dif.tbats.month)
+```
+
+From the time series plot above, the TBATS model (red line) shows an increase for the future number of fire incidents. The line appears to fit fairly well with the trend of the data.
+
+```{r, echo=FALSE}
+#ARIMA forecasting
+monthly.arima = auto.arima(gso.fire.ts.month.2)
+monthly.arima.fc = forecast(monthly.arima, h=8)
+autoplot(monthly.arima.fc) +
+  ggtitle("ARIMA Forecasting Model for Monthly Frequency of Fire Incidents") +
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Frequency of Fire Incidents") + 
+  theme(title = element_text(size = 10))
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(monthly.arima)
+```
+
+In the plot above, it can be seen that the ARIMA model was producing similar spikes compared to the TBATS model and had done a fairly good job.
+
+```{r, echo=FALSE}
+#HoltWinters forecasting
+dif.monthly.holt = HoltWinters(gso.fire.ts.month.2.dif)
+dif.fcast.monthly = forecast::forecast(dif.monthly.holt, h=8, level=c(80,95))
+dYhat.Holt = dif.fcast.monthly$mean
+
+Yhat.Holt = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.Holt))
+Yhat.Holt = ts(Yhat.Holt, start = c(2022, 05), frequency=12)
+
+autoplot(gso.fire.ts.month.2) +
+  autolayer(Yhat.Holt, series = "Point Forecasts") +
+  ggtitle("Forecasts of Monthly Frequency of Fire Incidents using HoltWinters") +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
+        legend.position = "bottom")
+```
+
+```{r, echo=FALSE}
+#checking accuracy
+accuracy(dif.fcast.monthly)
+```
+
+As seen above, the HoltWinters model predicted much larger spikes upwards compared to the TBATS model. As a result, with such a drastic increase it is likely it would be less accurate than the TBATS model for this data.
+
+## Multi-Step Forecasting
+
+```{r, echo=FALSE}
+#getting differenced training and test sets 
+y.dif.2 = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
+dif.training.tbats.2 = subset(y.dif.2, end=length(y.dif.2)-151)
+dif.test.tbats.2 = subset(y.dif.2, start=length(y.dif.2)-150)
+dif.daily.train.tbats.2 = tbats(dif.training.tbats.2)
+dif.train.fc = forecast(dif.daily.train.tbats.2, h=151)
+
+#getting point forecasts 
+dYhat.tbats = dif.train.fc$mean
+
+#setting up normal ts training and test sets 
+y.2 <- msts(gso.fire.ts.2, seasonal.periods=c(7,365.25))
+training.tbats.2 <- subset(y.2, end=length(y.2)-151)
+test.tbats.2 <- subset(y.2, start=length(y.2)-150)
+
+#reverting back to original points   
+Yhat.tbats <- cumsum(c(training.tbats.2[length(training.tbats.2)], dYhat.tbats))
+Yhat.tbats <- ts(Yhat.tbats, start = c(2022, 1), frequency = 365)
+
+autoplot(training.tbats.2) + 
+  autolayer(Yhat.tbats, series="Point Forecasts") + 
+  autolayer(test.tbats.2, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step TBATS Daily Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  coord_cartesian(xlim = c(2020, 2023)) +
+  theme(legend.position = "bottom")
+
+#checking accuracy
+dif.daily.test.tbats.2 <- tbats(dif.test.tbats.2)
+accuracy(dif.daily.test.tbats.2)
+```
+
+For the plot above, the data was split into a training set and a test set. The training set was from July 1, 2010 to December 31, 2022. The test set was from January 1, 2022 to May 31, 2022. The results show that the TBATS model did fairly well, but it did not follow the big dip in the true data.
+
+From the accuracy function, we can see that the errors of the TBATS model were small. The root mean square error was only 7.71.
+
+```{r, echo=FALSE}
+#multi-step ARIMA forecast for daily data
+training.arima = subset(gso.fire.ts.2, end=length(gso.fire.ts.2)-151)
+test.arima = subset(gso.fire.ts.2, start=length(gso.fire.ts.2)-150)
+daily.train.arima = auto.arima(training.arima)
+fc.train.arima = forecast(daily.train.arima, h=151)
+
+autoplot(fc.train.arima) + 
+  autolayer(test.arima, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Daily Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  theme(legend.position = "bottom")
+
+daily.test.arima = arima(test.arima)
+accuracy(daily.test.arima)
+```
+
+From the visual above, the data was again split into a training set and a test set. The training set was from July 1, 2010 to December 31, 2022. The test set was from January 1, 2022 to May 31, 2022. With the results of th plot and the accuracy function, the ARIMA model did fairly and had a root mean square error of only 7.79.
+
+```{r, echo=FALSE}
+#time series combination
+train = window(gso.fire.ts.2, end=c(2019, 12))
+h = length(gso.fire.ts.2) - length(train)
+
+#ARIMA model 
+ARIMA = forecast::forecast(auto.arima(train, lambda=0, biasadj=TRUE), h=h)
+
+#TBATS model 
+train.tbats = msts(gso.fire.ts.2.dif, end=c(2019,12), seasonal.periods = c(7,365.25))
+TBATS = forecast::forecast(tbats(train.tbats, biasadj = TRUE), h=h)
+dYhat.combo = TBATS$mean
+
+Yhat.combo = cumsum(c(train[length(train)], dYhat.combo))
+Yhat.combo = ts(Yhat.combo, start = c(2019, 12), frequency = 365)
+Combination = (ARIMA[["mean"]] + Yhat.combo)/2
+true.daily = gso.fire.ts %>%
+  filter(AlarmDate2 >= as.Date("2019/12/01") & AlarmDate2 <= as.Date("2021/05/31"))
+true.daily.ts = ts(true.daily$n, 
+                            start = c(2019,12), end = c(2021,153), 
+                            frequency = 365)
+
+autoplot(train) +
+  autolayer(true.daily.ts) +
+  autolayer(Combination, series="Combination", alpha=0.8) +
+  autolayer(ARIMA, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo, series="TBATS", alpha=0.7) +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  ggtitle("Time Series Combination for Daily Frequency of Fire Incidents") + 
+  theme(legend.position = "bottom")
+
+c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo, gso.fire.ts.2)["Test set", "RMSE"],
+  Combination =
+    accuracy(Combination, gso.fire.ts.2)["Test set", "RMSE"])
+
+```
+
+As can be seen above, the data was split into training and test sets with the same dates as the two previous plots. From the results it can be seen that the TBATS model did not do that well and predicted a bigger decrease than what actually happened with the actual data.
+
+From the accuracy function, we can see that the ARIMA and Combination models did better
+
+```{r, echo=FALSE}
+#multi-step forecasting for monthly data
+
+#multi-step TBATS
+y2.dif.monthly = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
+dif.training.tbats.2.monthly = subset(y2.dif.monthly, end=length(y2.dif.monthly)-5)
+dif.test.tbats.2.monthly = subset(y2.dif.monthly, start=length(y2.dif.monthly)-4)
+dif.train.tbats.2.monthly = tbats(dif.training.tbats.2.monthly)
+dif.fc.train.tbats.2.monthly = forecast(dif.train.tbats.2.monthly, h=5)
+dYhat.ms.tbats.monthly = dif.fc.train.tbats.2.monthly$mean
+y2.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
+training.tbats.monthly.2 = subset(y2.monthly, end=length(y2.monthly)-5)
+test.tbats.monthly.2 = subset(y2.monthly, start=length(y2.monthly)-4)
+
+Yhat.ms.tbats.monthly = cumsum(c(training.tbats.monthly.2[length(training.tbats.monthly.2)],
+                                 dYhat.ms.tbats.monthly))
+Yhat.ms.tbats.monthly = ts(Yhat.ms.tbats.monthly, start = c(2022,01), frequency=12)
+
+autoplot(training.tbats.monthly.2) + 
+  autolayer(Yhat.ms.tbats.monthly, series="Point Forecasts") + 
+  autolayer(test.tbats.monthly.2, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step TBATS Monthly Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  theme(legend.position = "bottom", title=element_text(size=10)) + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r, echo=FALSE}
+dif.test.tbats.2.monthly = tbats(dif.test.tbats.2.monthly)
+accuracy(dif.test.tbats.2.monthly)
+```
+
+For this plot, it can be seen that the TBATS model did not expect such a big dip in the true data but it still predicted values that appear to fit well with the plot.
+
+From the accuracy function, we had a root mean squared error of 170.92, which is pretty high but that is because of the big dip in the true data that the TBATS model was not able to predict.
+
+```{r, echo=FALSE}
+#multi-step ARIMA
+training.arima.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test.arima.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+train.arima.monthly.3 = auto.arima(training.arima.monthly)
+fc.train.arima.monthly = forecast(train.arima.monthly.3, h=5)
+
+autoplot(fc.train.arima.monthly) + 
+  autolayer(test.arima.monthly, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Monthly Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  coord_cartesian(xlim = c(2018, 2023)) +
+  theme(legend.position = "bottom") + 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
+        legend.position = "bottom")
+```
+
+```{r, echo=FALSE}
+test.arima.monthly.3 = arima(test.arima.monthly)
+accuracy(test.arima.monthly.3)
+```
+
+As you can see, the ARIMA model had the same issue as the TBATS model with the big dip in the true data.
+
+The root mean squared error for this model ended up being 114.69, which is pretty high.
+
+```{r, echo=FALSE}
+#multi-step HoltWinters
+dif.training.HW.monthly = subset(gso.fire.ts.month.2.dif, end=length(gso.fire.ts.month.2.dif)-5)
+dif.test.HW.monthly = subset(gso.fire.ts.month.2.dif, start=length(gso.fire.ts.month.2.dif)-4)
+dif.train.HW.monthly = HoltWinters(dif.training.HW.monthly)
+dif.fc.HW = forecast::forecast(dif.train.HW.monthly, h=5)
+
+dYhat.ms.HW = dif.fc.HW$mean
+Yhat.ms.HW = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.ms.HW))
+Yhat.ms.HW = ts(Yhat.ms.HW, start = c(2022,01,01), frequency=12)
+
+training.HW.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test.HW.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+true.count.monthly = ts(gso.fire.ts.month.2, start=c(2010,07,01), end=c(2021,12,31), frequency=12)
+
+autoplot(training.HW.monthly) + 
+  autolayer(Yhat.ms.HW, series = "Point Forecasts") + 
+  autolayer(test.HW.monthly, series = "Test Set") + 
+  ggtitle("Multi-Step HoltWinters Monthly Forecasts of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9))
+```
+
+```{r, echo=FALSE}
+accuracy(Yhat.ms.HW, gso.fire.ts.month.2)
+```
+
+For the model above it can been seen that the HoltWinters method was also not able to predict the big dip in the true data, but what it did predict followed the trend of the data nicely.
+
+From the accuracy function, the root mean squared error was 134.55, which is significantly high.
+
+```{r, echo=FALSE}
+#Time series combination for monthly
+train.monthly.2 = window(gso.fire.ts.month.2, end=c(2021, 05))
+h.monthly.2 = length(gso.fire.ts.month.2) - length(train.monthly.2)
+
+#ARIMA model 
+ARIMA.monthly.2 = forecast::forecast(auto.arima(train.monthly.2, lambda=0, biasadj=TRUE),
+                                   h=h.monthly.2)
+
+#TBATS model 
+train.tbats.monthly.2 = msts(gso.fire.ts.month.2.dif, end=c(2021,05), seasonal.periods = 12)
+tbats.monthly.2 = forecast::forecast(tbats(train.tbats.monthly.2, biasadj = TRUE),
+                                     h=h.monthly.2)
+dYhat.combo.monthly.2 = tbats.monthly.2$mean
+
+Yhat.combo.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)], dYhat.combo.monthly.2))
+Yhat.combo.monthly.2 = ts(Yhat.combo.monthly.2, start = c(2021,05), frequency = 12)
+
+#HoltWinters Model 
+HW.monthly.2 = forecast::forecast(HoltWinters(gso.fire.ts.month.2.dif), h=h.monthly.2)
+
+dYhat.HW.monthly.2 = HW.monthly.2$mean
+
+Yhat.HW.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)],dYhat.HW.monthly.2))
+Yhat.HW.monthly.2 = ts(Yhat.HW.monthly.2, start = c(2021,05), frequency=12)
+Combination.monthly.2 = (ARIMA.monthly.2[["mean"]] + Yhat.combo.monthly.2 + 
+                           Yhat.HW.monthly.2)/3
+
+y.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
+test.monthly = subset(y.monthly, start=length(y.monthly)-12)
+
+autoplot(train.monthly.2) +
+  autolayer(test.monthly, series="True Count") +
+  autolayer(Combination.monthly.2, series="Combination", alpha=0.8) +
+  autolayer(ARIMA.monthly.2, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo.monthly.2, series="TBATS", alpha=0.7) +
+  autolayer(Yhat.HW.monthly.2, series="HoltWinters", alpha=0.7) + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  ggtitle("Time Series Combination for Monthly Frequency of Fire Incidents") + 
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9)) 
+
+c(ARIMA = accuracy(ARIMA.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
+  HW = accuracy(Yhat.HW.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
+  Combination =
+    accuracy(Combination.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"])
+```
+
+As shown by the plot above, the models were unable to predict the big dip in the true data that happened in 2020. But all the models followed the trend of the data fairly well.
+
+From the accuracy function the root mean squared error for ARIMA was 110.67, TBATS' was 79.14, HoltWinters' was 55.57, and the Combination model's was 76.41. All were fairly high because of the huge drop in the true data.
+
+## Modeling of Response Time
+
+In this section the results of the predictive modeling of fire incidents is displayed.
+
+There were two types of modeling done, linear regression and random forest. With this, we can evaluate the main factors that affect response time for fire incidents.
+
+### Linear Regression
+
+In order to successfully depict the affect of each given variable in relation to response time the first model we sought was a Linear Regression model. With this approach we are able to identify which surrounding variables from our original data set directly impact our independent variable which in this case is fire service response time. First we filtered our cutoff point in regards to response time and ran a linear regression model with all given variables that we identified to have a direct impact on response time. Then we used two different variable selection methods to finalize the surrounding dependent variables being used in the Linear Regression model Once we completed the variable selection process we were able to identify that the variables holding significance in correlation to response time were TotalStaffOnIncident, FireDistrict, DayOfWeek, shift, Month, AlarmHour, and NatureCode. When originally running this test a couple of our dependent variables had processed as one big character component not giving the model its true ability to compare all given components within that given variable. To solve this we mutated these variables as factors in order to unravel the different contents within each variables allowing the model to accurately compare each given variable to fire service response time. In return we were able to mathematically see the significance of each variable and its impact on response time as a whole.
+
+```{r, echo=FALSE}
+gso.fire.filtered = gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>% 
+  dplyr::select(response_time_seconds, everything())
+```
+
+```{r, echo=FALSE}
+gso.fire.filtered = gso.fire.filtered %>%
+  mutate(AlarmTime = case_when(AlarmHour >= 0 & AlarmHour < 6 ~ "0-5", 
+                               AlarmHour >= 6 & AlarmHour < 12 ~ "6-11",
+                               AlarmHour >= 12 & AlarmHour < 18 ~ "12-17",
+                               TRUE ~ "18-23"))
+```
+
+First we created a linear regression model on all given variables that directly impact response time. 
+
+```{r, echo=FALSE}
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                   shift + Month + AlarmTime + NatureCode, data = gso.fire.filtered)
+summary(lm.res.time)
+```
+
+From the model above we are able to identify how each variable holds significance in terms of their impact on response time. We are also able to see which components inside each given variable hold impact and how much using the P-Value produced from the model. 
+
+Then we used the stepwise regression for our first method of variable selection. 
+
+```{r, echo=FALSE}
+lm.res.time.select = stepAIC(lm.res.time)
+summary(lm.res.time.select)
+
+```
+
+From this result we are able to see in further in detail which components affect response time and at what level due to the stepwise regression model eliminating the components that have little to no impact on response time. 
+
+After that we also tried LASSO variable selection using the glmnet function.
+
+```{r, echo=FALSE}
+las.Mod = glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
+summary(las.Mod)
+plot(las.Mod)
+```
+
+This result allows us to view the level of significance in terms of each coefficient due to the shrinkage that this model produces.
+
+### Random Forest
+As an alternative to our linear regression models we ran a tree based random forest model. For this model we produced a bar graph to display the significance in each variable from a model we created using the Ranger() command. In this graph we are able to visually identify how much the models accuracy would be affected by each variable. 
+
+```{r, echo=FALSE}
+gso.fire.filtered.rf = gso.fire.filtered %>%
+  dplyr::select(response_time_seconds, TotalStaffOnIncident, FireDistrict, DayOfWeek, shift, Month, AlarmTime, NatureCode)
+
+RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                         shift + Month + AlarmTime + NatureCode,
+                       data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+
+variable = names(RF.Mod.Ranger$variable.importance)
+rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
+
+ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
+  geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
+  ylab("Variable Importance")+
+  xlab("")+
+  ggtitle("Information Value Summary")
+```
+
+After producing the bar plot we are able to see that Nature Code holds the most importance in relation to the model followed by Fire District and Alarm Time.
+
+## Conclusion
+
+Our extensive research has provided us with the ability to provide sufficient results for each of our research questions. Throughout this report, we have worked on the public data set provided by the Greensboro Fire Department which holds all reported fire incidents in Greensboro, NC from July 1, 2010, to May 31, 2022. Firstly, to attack our research questions on the topics of analyzing response time and forecasting future fire incidents we explored our data set to a great extent making multiple univariate and bivariate visualizations. We then followed this by using a variety of different forecasting and regression models to produce high-accuracy results.
+
+While identifying what factors affect fire service response time and how to improve fire service response time, we first visualized the relationship between response time and every other tested variable. Through this, we were able to decide which variables to apply to a linear regression model to produce the level of significance that each variable holds with response time. In our initial linear regression model, we tested the variables; TotalStaffonIncident, FireDistrict, DayofWeek, shift, Month, AlarmTime, and NatureCode. We then used two different variable selection methods (Stepwise and LASSO) and analyzed the results between the three models. Following the results from our linear regression models, we ran a random forest model to display the significance that each given variable obtains. With our results from this process, we were able to conclude that NatureCode followed by FireDistrict and AlarmTime held the most significance in relation to response time.
+
+In regards to the effect response time has on the total loss we were able to quickly identify this through our bivariate visualizations. In this process, we compared the variables PropertyLoss, TotalLosses, CivilianInjuries, CivilianFatalities, FireServiceInjuries, and FireServiceFatalities to response time and produced scatter plots and a combination of box and violin plots to visualize the relationship between the two. After making our property and total loss visualizations we were able to see a very slight relationship between them and response time. Throughout the different distributions of response time, both variables seemed to linger around the middle betwen 100 and 400 seconds. Contrary to belief, it’s safe to conclude that most of the time there is not much effect response time has on total and property loss. Given the situation, there are definitely occasions where total and property loss are affected massively depending on the speed at which the fire service responds to the call. In regards to Civilian and Fire Service injuries and fatalities, there were very few situations where either occurred across the data set. From our visualizations, we can see that across the twelve years there have only been ten total civilian fatalities, two occasions where more than two civilians were reported injured, six occasions where more than one fire service injury occurred, and absolutely no fatalities within the fire department ever. Through our results, we were able to conclude not much significance in the relationship between fire service response time and total loss.
+
+Furthermore, used many models to forecast the daily and monthly frequencies of fire incidents in Greensboro, NC. The models that we used were TBATS, ARIMA, Holt-Winters, and Combination. All the models tended to do fairly well except when there was a drastic drop in the frequency of fire incidents in 2020. But in general, the models followed the trend of the plots nicely. The reason for that drop could have been covid and when people stayed home a lot more. From our research, we found that the models did fairly well, and sometimes some models did better than others.
+
+## Discussion
+
+In this report we worked intensively in order to analyze the key factors for reported fire incidents in Greensboro, NC using all reported data from June 1, 2010 to May 31, 2022. When further analyzing the data set given we were able to identify through our exploratory data analysis as well as regression and forecasting models how each variable holds significance in relations to fire service response time and successfully forecast the future in regards to reported fire incidents in Greensboro, NC. We also were able to further visualize the effects of response time on total loss. 
+
+Although our extensive data set equips us with a variety of different variables over a long time period, it is not perfect due to missing values within the data set and human error from the importation of the reported data. With us having to cater a bit to an imperfect data set we were still able to produce highly accurate results with the amount of information given. With this further exploration we were then able to forecast an accurate prediction in terms of reported fire incidents for the rest of the year. 
+
+With our research results there are now many safe assumptions that can be made behind what holds affect within the different components that we studied in reported fire incidents. Through our exploratory data analysis we can see the affects of all given variables in relation to response time. Our regression models accurately depict to what extent the importance of each given variable has on the speed of response time. And lastly, our forecasting model equips the Greensboro Fire Department with an accurate prediction to continue through the rest of the year under maximum efficiency. 
+
+Looking through our findings there are many different observations that can be made in order to minimize response time thus leading towards safer situations. We were able to identify the difference in response time on any given day, week, year and even looked at how different response time varies in terms of the working shift for the fire service workers. Our findings also highlighted how much response time effects losses in terms of civilian injuries and fatalities, fire service injuries and fatalities, and total property loss. All of our discoveries from this research help equip the Greensboro Fire Department with high level information in order to perform they're job to maximum efficiency as well as minimizing response time in order to assure the safest outcome possible.
+
+## References
+
+1  Aleisa, E., &amp; Savsar, M. (2014). Response Time Analysis of firefighting operations using discrete event simulation. IEEE Xplore. Retrieved July 26, 2022, from https://ieeexplore.ieee.org/abstract/document/7046087 
+
+2  Buffington, T., &amp; Ezekoye, O. A. (2019). Statistical Analysis of Fire Department Response Times ... - researchgate. Retrieved July 26, 2022, from https://www.researchgate.net/publication/333158843_Statistical_Analysis_of_Fire_Department_Response_Times_and_Effects_on_Fire_Outcomes_in_the_United_States 
+
+3  Challands, N. (n.d.). The relationships between fire service response time and ... - researchgate. Retrieved July 26, 2022, from https://www.researchgate.net/publication/226273683_The_Relationships_Between_Fire_Service_Response_Time_and_Fire_Outcomes
+
+4  KC, K. and Corcoran, J., 2017. Modelling residential fire incident response times: A spatial analytic approach. Applied Geography, 84, pp.64-74. https://doi.org/10.1016/j.apgeog.2017.03.004 
+
+5  Lian, X., Melancon, S., Presta, J.-R., Reevesman, A., Spiering, B. J., &amp; Woodbridge, D. M.-kyung. (2019). Scalable real-time prediction and analysis of San Francisco Fire Department Response Times. IEEE Xplore. Retrieved July 26, 2022, from https://ieeexplore.ieee.org/document/9060320 
+
+6  Mukhopadhyay, A., Vorobeychik, Y., Dubey, A., &amp; Biswas, G. (2017, May 1). Prioritized allocation of emergency responders based on a continuous-time incident prediction model: Proceedings of the 16th conference on autonomous agents and multiagent systems. ACM Other conferences. Retrieved July 26, 2022, from https://dl.acm.org/doi/10.5555/3091125.3091154 
+
+7  Yuanwei Li, Sikui Zhang, and Guoyi Fu. 2022. Forest fire modeling and
+analysis based on K-means clustering algorithm and time series forecasting.
+In 2022 2nd International Conference on Bioinformatics and Intelligent Computing (BIC 2022), January 21–23, 2022, Harbin, China. ACM, New York, NY,
+USA, 7 pages. https://doi.org/10.1145/3523286.3524560
+
+## Acknowledgements
+
+The authors acknowledge financial support by NSF Grant HRD#1719498 and NSA Grant #H98230-22-1-0017.
+
+## Appendix
+This section contains the code to reproduce the analysis described in this report.
+
+Below is a list of the libraries that we used throughout the report.
+
+#### Loading necessary packages
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+library(readr)
+library(lubridate)
+library(ggplot2)
+library(dslabs)
+library(dplyr)
+library(ggrepel)
+library(ggthemes)
+library(broom)
+library(glmnet)
+library(MASS)
+library(tidyverse)
+library(Amelia)
+library(mice)
+library(caret)
+library(forecast)
+library(urca)
+library(randomForest)
+library(ranger)
+library(astsa)
+```
+
+#### Data Preprocessing
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+gso.fire <- read_csv("Greensboro_Fire_Incidents.csv")
+```
+
+
+#### Filtering for incidents prior to June 1st 2022
+```{r, eval=FALSE}
+gso.fire = 
+  gso.fire %>%
+  mutate(AlarmDate2 = make_date(Year, Month, Day)) %>%
+  filter(AlarmDate2 < '2022-06-01')
+```
+
+#### Filter for property type 1-2 family dwellings
+```{r, eval=FALSE}
+gso.fire = gso.fire %>%
+  filter(PropertyUse == '419 - 1 or 2 family dwelling')
+```
+
+#### Convert to call process time to seconds and add to gso.fire
+```{r, eval=FALSE}
+gso.fire = gso.fire %>%
+  mutate(call_process_period = lubridate::hms(CallProcessingTime), 
+         call_process_seconds = period_to_seconds(call_process_period))
+```
+
+#### Convert response time to seconds and add to gso.fire
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+gso.fire = gso.fire %>%
+  mutate(response_time_period = lubridate::hms(ResponseTime),
+         response_time_seconds = period_to_seconds(response_time_period))
+```
+
+#### Convert total response time to seconds and add to gso.fire
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+gso.fire = gso.fire %>%
+  mutate(total_response_period = lubridate::hms(TotalResponseTime),
+         total_response_seconds = period_to_seconds(total_response_period))
+```
+
+#### Cutoff point for response time
+```{r, eval=FALSE}
+cutoff.response_time = gso.fire %>% 
+  dplyr::select(response_time_seconds) %>%
+  filter(!is.na(response_time_seconds)) %>%
+  summarize(c = quantile(response_time_seconds, .75) + 3 * IQR(response_time_seconds)) %>%
+  pull(c)
+```
+
+### Univariate graphs
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = response_time_seconds, fill = "red")) +
+  geom_histogram(show.legend = FALSE, color = "black") +
+  xlab("Response Time (Seconds)") +
+  ylab("Count") +
+  ggtitle("Distribution of Response Time") +
+  theme_economist()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalStaffOnIncident)) +
+  geom_histogram(bins = 25,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_y_log10() +
+  xlab("Total Staff on Incident") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Total Staff on Incident") +
+  theme_economist() +
+  xlim(0,25)
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(CivilianInjuries) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = CivilianInjuries, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Civilian Injuries") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Civilian Injuries") +
+  theme_economist()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(CivilianFatalities) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = CivilianFatalities, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Civilian Fatalities") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Civilian Fatalities") +
+  theme_economist()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  count(FireServiceInjuries) %>%
+  mutate(nlog = log10(n)) %>%
+  ggplot(aes(x = FireServiceInjuries, y = nlog)) +
+  geom_col(color = "black", fill = "pink") +
+  xlab("Fire Service Injuries") +
+  ylab("Count (Log10 scale)") +
+  ggtitle("Distribution of Fire Service Injuries") +
+  theme_economist()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = PropertyLoss)) +
+  geom_histogram(bins = 20,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_x_log10() +
+  xlab("Property Loss (Log10 scale)") +
+  ylab("Count") +
+  ggtitle("Distribution of Property Loss") +
+  theme_economist() 
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalLosses)) +
+  geom_histogram(bins = 20,show.legend = FALSE, color = "black", fill = "pink") +
+  scale_x_log10() +
+  xlab("Total Loss (Log10 scale)") +
+  ylab("Count") +
+  ggtitle("Distribution of Total Loss") +
+  theme_economist() 
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  ggplot(aes(x = AlarmHour)) +
+  geom_bar(color = "black", fill = "pink") +
+  scale_x_continuous(breaks = seq(0,23,1)) +
+  theme(axis.text.x = element_text(angle = 45)) +
+  xlab("Alarm Hour") +
+  ylab("Count") +
+  ggtitle("Frequency of Fire Alarms by Alarm Hour")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  count(station) %>%
+  mutate(station = reorder(station, n)) %>%
+  ggplot(aes(x = station, y = n)) +
+  geom_bar(stat = "identity", color = "black", fill = "pink") +
+  theme(axis.text.y = element_text(size = 6)) +
+  xlab("Fire Station (Station Number)") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Fire Station") +
+  coord_flip()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  count(FireDistrict) %>%
+  mutate(FireDistrict = reorder(FireDistrict, n)) %>%
+  ggplot(aes(x = FireDistrict, y = n)) +
+  geom_bar(stat = "identity", color = "black", fill = "pink") +
+  theme(axis.text.y = element_text(size = 6)) +
+  xlab("Fire Station (Station Number)") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Fire District") +
+  coord_flip()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  count(Year) %>%
+  ggplot(aes(x = Year, y = n)) +
+  geom_bar(stat = "identity", fill = "pink", color = "black") +
+  scale_x_continuous(breaks = seq(2010,2022,1)) +
+  xlab("Year") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Year")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  ggplot(aes(x = shift)) +
+  geom_bar(show.legend = FALSE, fill = "pink", color = "black") +
+  xlab("Shift") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Shift")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  ggplot(aes(x = DayOfWeek)) +
+  geom_bar(fill = "pink", color = "black") +
+  xlab("Days of the Week") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Days of the Week")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  ggplot(aes(x = Week)) +
+  geom_bar(fill = "pink", color = "black") +
+  scale_x_continuous(breaks = seq(1,53,1)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Week") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Week")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  ggplot(aes(x = Month)) +
+  geom_bar(fill = "pink", color = "black") +
+  xlab("Month") +
+  ylab("Count") +
+  ggtitle("Frequency of Calls by Month")
+```
+
+### Bivariate Graphs
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = Week, y = response_time_seconds, group = Week)) +
+  geom_boxplot() +
+  scale_x_continuous(breaks = seq(1,53,1)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Week") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Week vs Response Time")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = station, y = response_time_seconds)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Station") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Station vs Response Time")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = AlarmHour, y = response_time_seconds, group = AlarmHour)) +
+  geom_boxplot() +
+  scale_x_continuous(breaks = seq(0,23,1)) +
+  xlab("Alarm Hour") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Alarm Hour vs Response Time")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = NumberOfAlarms, y = response_time_seconds, group = NumberOfAlarms)) +
+  geom_boxplot(show.legend = FALSE) +
+  xlab("Number of Alarms") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Number of Alarms vs Response Time")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = NatureCode, y = response_time_seconds)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_boxplot() +
+  xlab("Nature Code") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Nature Code vs Response Time")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = TotalLosses, x = as.factor(AlarmHour))) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Total Loss (Log10 scale)") +
+  xlab("Alarm Hour") +
+  ggtitle("Total Loss by Alarm Hour")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = TotalLosses, x = shift)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Total Loss (Log10 scale)") +
+  xlab("Shift") +
+  ggtitle("Total Loss by Shift")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = PropertyLoss, x = as.factor(AlarmHour))) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Property Loss (Log10 scale)") +
+  xlab("Alarm Hour") +
+  ggtitle("Property Loss by Alarm Hour")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = PropertyLoss, x = shift)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Property Loss (Log10 scale)") +
+  xlab("Shift") +
+  ggtitle("Property Loss by Shift") +
+  theme_economist()
+```
+
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = response_time_seconds, y = CivilianInjuries)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  ylab("Civilian Injuries") +
+  xlab("Response Time (Seconds)") +
+  ggtitle("Civilian Injuries vs Response Time") +
+  theme_economist() 
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = TotalStaffOnIncident, y = response_time_seconds)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  xlab("Total Staff On Incident") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Total Staff on Incident vs Response Time") +
+  theme_economist()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = PropertyLoss, x = response_time_seconds)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Property Loss (Log10 scale)") +
+  xlab("Response Time (Seconds)") +
+  ggtitle("Property Loss vs Response Time") +
+  theme_economist()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(y = TotalLosses, x = response_time_seconds)) +
+  geom_point(stat = "identity", show.legend = FALSE) +
+  scale_y_log10() +
+  ylab("Total Loss (Log10 scale)") +
+  xlab("Response Time (Seconds)") +
+  ggtitle("Total Loss vs Response Time") +
+  theme_economist()
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(!is.na(response_time_seconds)) %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = DayOfWeek, y = response_time_seconds)) +
+  geom_violin(trim = FALSE, fill = "light blue") +
+  geom_boxplot(width = 0.3, fill = "pink") +
+  xlab("Days of the Week") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin & Box Plot of Response Time Densities by Days of the Week") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "hide")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = Year, y = response_time_seconds, group = Year)) +
+  geom_violin(trim = FALSE, fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .3, fill = "pink") +
+  scale_x_continuous(breaks = seq(2010,2022,1)) +
+  xlab("Year") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin & Box Plot of Response Time Densities by Year")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = shift, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Work shift") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Work Shift")
+```
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = FireDistrict, y = response_time_seconds)) +
+  geom_violin(fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .2, fill = "pink") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "hide") +
+  xlab("Fire District") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Fire District")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = Month, y = response_time_seconds)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(show.legend = FALSE, width = .3, fill = "pink") +
+  xlab("Month") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Month")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = AlarmHour, y = response_time_seconds, group = AlarmHour)) +
+  geom_violin(fill = "light blue") +
+  geom_boxplot(width = .3, fill = "pink") +
+  scale_x_continuous(breaks = seq(0,23,1)) +
+  xlab("Alarm Hour") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Alarm Hour")
+```
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = NumberOfAlarms, y = response_time_seconds, group = NumberOfAlarms)) +
+  geom_violin(fill = "light blue") +
+  geom_boxplot(width = .3, fill = "pink") +
+  xlab("Number of Alarms") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Number of Alarms")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = CivilianInjuries, y = response_time_seconds, group = CivilianInjuries)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Civilian Injuries") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Civilian Injuries")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = CivilianFatalities, y = response_time_seconds, group = CivilianFatalities)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Civilian Fatalities") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Civilian Fatalities")
+```
+
+```{r, eval=FALSE}
+gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>%
+  ggplot(aes(x = FireServiceInjuries, y = response_time_seconds, group = FireServiceInjuries)) +
+  geom_violin(show.legend = FALSE, fill = "light blue") +
+  geom_boxplot(width = .5, show.legend = FALSE, fill = "pink") +
+  xlab("Fire Service Injuries") +
+  ylab("Response Time (Seconds)") +
+  ggtitle("Violin and Box Plot of Response Time Densities by Fire Service Injuries")
+```
+
+### Time Series Visualization
+Visualization of fire incidents in Greensboro, NC from July 1, 2010 to May 31, 2022.
+
+```{r, eval=FALSE}
+gso.fire.ts = gso.fire %>%
+  count(AlarmDate2)
+```
+
+```{r, eval=FALSE}
+gso.fire.ts %>%
+  ggplot(aes(x = AlarmDate2, y = n)) +
+  geom_line() +
+  scale_x_date(date_labels = "%m-%Y", date_breaks = "6 month") + 
+  xlab("Year") +
+  ylab("Number of Fire Incidents") +
+  ggtitle("Time series of daily number of fire incidents") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r, eval=FALSE}
+incidents_annual = gso.fire.ts %>%
+  separate(AlarmDate2, sep="-", into = c("Year", "Month", "Day"))
+
+incidents_annual = cbind(incidents_annual, gso.fire.ts$AlarmDate2)
+colnames(incidents_annual) = c("Year","Month","Day","n","AlarmDate2")
+
+incidents_annual %>%
+  ggplot(aes(x = AlarmDate2, y = n)) + 
+  ggtitle("Time Series Plots for Frequency of Daily Fire Incidents Organized by Year") + 
+  geom_line() + 
+  scale_x_date(date_labels = "%m-%Y", date_breaks = "1 month") + 
+  xlab("Date") + ylab("Count") + 
+  theme(axis.text.x = element_text(angle = 90, size = 14)) +
+  theme(axis.text.y = element_text(size = 14)) +
+  theme(plot.title = element_text(size=22)) +
+  theme(axis.title=element_text(size=18)) +
+  facet_wrap(~Year, scales = "free_x")
+``` 
+
+Monthly time series visualizations
+
+```{r, eval=FALSE}
+gso.fire.ts.month = gso.fire %>%
+  mutate(Monthly = make_date(Year, Month)) %>%
+  group_by(Monthly, Month, Year) %>%
+  count()
+```
+
+```{r, eval=FALSE}
+gso.fire.ts.month %>%
+  ggplot(aes(x = Monthly, y = n)) +
+  geom_line() +
+  scale_x_date(date_labels = "%m-%y", date_breaks = "6 month") + 
+  xlab("Month") +
+  ylab("Number of Fire Incidents") +
+  ggtitle("Time series of monthly number of fire incidents for 2010-2022") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+### Time Series Forecasting
+```{r, eval=FALSE}
+#forecasting for daily number of fire incidents
+gso.fire.ts.2 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+                 frequency = 365)
+ndiffs(gso.fire.ts.2)
+ndiffs(gso.fire.ts.2)
+acf(gso.fire.ts.2)
+summary(ur.kpss(gso.fire.ts.2))
+
+#attempt at differencing
+gso.fire.ts.2.dif = diff(gso.fire.ts.2)
+acf(gso.fire.ts.2.dif)
+
+cbind("Fire Incidents" = gso.fire.ts.2,
+      "First differenced" = diff(gso.fire.ts.2)) %>%
+  autoplot(facets=TRUE) +
+  xlab("Date") + ylab("") +
+  ggtitle("Stationarity Transformations of Daily Fire Incidents")
+
+y.dif = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats = tbats(y.dif)
+daily.dif.tbats.fc = forecast::forecast(daily.dif.tbats, h = 214)
+
+#point forecast values
+dif.Yhat = daily.dif.tbats.fc$mean
+dif.Yhat.upper = daily.dif.tbats.fc$upper
+dif.Yhat.lower = daily.dif.tbats.fc$lower
+
+Yhat = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat))
+Yhat = ts(Yhat, start = c(2022, 152), frequency=365)
+Yhat_upper = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.upper))
+Yhat_upper = ts(Yhat_upper, start = c(2022, 152), end = c(2023,1), frequency=365)
+Yhat_lower = cumsum(c(gso.fire.ts.2[length(gso.fire.ts.2)],dif.Yhat.lower))
+Yhat_lower = ts(Yhat_lower, start = c(2022, 152), end = c(2023,1), frequency=365)
+
+fire.ts = ts(gso.fire.ts.2[3992:4352],start = c(2021, 25), end = c(2022, 153),
+              frequency = 360) # A 360 day trim to see forecast better
+
+#TBAT forecasting
+autoplot(fire.ts) + 
+  autolayer(Yhat, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") + ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+
+accuracy(daily.dif.tbats.3)
+```
+
+```{r, eval=FALSE}
+#ARIMA forecasting
+daily.arima = auto.arima(gso.fire.ts.2)
+daily.arima.fc = forecast(daily.arima, h=214)
+autoplot(daily.arima.fc) +
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+
+accuracy(daily.arima.3)
+```
+
+```{r, eval=FALSE}
+gso.fire.ts.3 = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 59),
+                                 frequency = 365)
+#attempt at differencing
+gso.fire.ts.3.dif = diff(gso.fire.ts.3)
+
+y.dif.3 = msts(gso.fire.ts.3.dif, seasonal.periods=c(7,365.25))
+daily.dif.tbats.3 = tbats(y.dif.3)
+daily.dif.tbats.fc.3 = forecast::forecast(daily.dif.tbats.3, h=671)
+dif.Yhat.3 = daily.dif.tbats.fc.3$mean #point forecast values 
+
+Yhat.3 = cumsum(c(gso.fire.ts.3[length(gso.fire.ts.3)],dif.Yhat.3))
+Yhat.3 = ts(Yhat.3, start = c(2022, 60), frequency=365)
+
+gso.fire.ts.true = ts(gso.fire.ts$n, start = c(2010, 182), end = c(2022, 153),
+                    frequency = 365)
+#TBAT forecasting
+autoplot(gso.fire.ts.3) + 
+  autolayer(gso.fire.ts.true, alpha=0.7, series="True Count") +
+  autolayer(Yhat.3, alpha=0.6, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10), legend.position = "bottom")
+
+accuracy(daily.dif.tbats.3)
+```
+
+```{r, eval=FALSE}
+#ARIMA forecasting
+daily.arima.3 = auto.arima(gso.fire.ts.3)
+daily.arima.fc.3 = forecast(daily.arima.3, h=671)
+autoplot(daily.arima.fc.3) + 
+  ggtitle("ARIMA Forecasting Model for Daily Number of Fire Incidents") +
+  xlab("Date") +
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Fire Incidents") + 
+  theme(title = element_text(size = 10))
+
+accuracy(daily.arima.3)
+```
+
+Forecasting for monthly number of fire incidents.
+```{r, eval=FALSE}
+#convert gso.fire.ts.month to official ts object
+gso.fire.ts.month.2 = ts(gso.fire.ts.month$n, start = c(2010, 07, 01), end = c(2022, 05, 01),
+                          frequency = 12)
+
+#looking at stationarity
+acf(gso.fire.ts.month.2)
+summary(ur.kpss(gso.fire.ts.month.2))
+
+ndiffs(gso.fire.ts.month.2) #1
+nsdiffs(gso.fire.ts.month.2) #0
+
+#attempt at differencing
+gso.fire.ts.month.2.dif = diff(gso.fire.ts.month.2)
+
+#looking at stationarity for difference
+acf(gso.fire.ts.month.2.dif)
+
+summary(ur.kpss(gso.fire.ts.month.2.dif))
+ndiffs(gso.fire.ts.month.2.dif) #0
+nsdiffs(gso.fire.ts.month.2.dif) #0
+
+cbind("Fire Incidents" = gso.fire.ts.month.2,
+      "First differenced" = diff(gso.fire.ts.month.2)) %>%
+  autoplot(facets=TRUE) +
+  xlab("Date") + ylab("") +
+  ggtitle("Stationarity Transformation of Monthly Fire Incidents")
+```
+
+```{r, eval=FALSE}
+y.dif.month = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
+dif.tbats.month = tbats(y.dif.month)
+dif.tbats.month.fc = forecast::forecast(dif.tbats.month, h = 8)
+
+#point forecast values
+dif.Yhat.month = dif.tbats.month.fc$mean
+
+Yhat.month = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dif.Yhat.month))
+Yhat.month = ts(Yhat.month, start = c(2022, 05), frequency=12)
+
+#TBATS forecasting
+autoplot(gso.fire.ts.month.2) + 
+  autolayer(Yhat.month, series="Point Forecasts") + 
+  ggtitle("TBATS Forecasting Model for Monthly Frequency of Fire Incidents") +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=10), 
+        legend.position = "bottom") 
+
+#checking accuracy
+accuracy(dif.tbats.month)
+```
+
+```{r, eval=FALSE}
+#ARIMA forecasting
+monthly.arima = auto.arima(gso.fire.ts.month.2)
+monthly.arima.fc = forecast(monthly.arima, h=8)
+autoplot(monthly.arima.fc) +
+  ggtitle("ARIMA Forecasting Model for Monthly Frequency of Fire Incidents") +
+  xlab("Date") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  ylab("Frequency of Fire Incidents") + 
+  theme(title = element_text(size = 10))
+
+#checking accuracy
+accuracy(monthly.arima)
+```
+
+```{r, eval=FALSE}
+#HoltWinters forecasting
+dif.monthly.holt = HoltWinters(gso.fire.ts.month.2.dif)
+dif.fcast.monthly = forecast::forecast(dif.monthly.holt, h=8, level=c(80,95))
+dYhat.Holt = dif.fcast.monthly$mean
+
+Yhat.Holt = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.Holt))
+Yhat.Holt = ts(Yhat.Holt, start = c(2022, 05), frequency=12)
+
+autoplot(gso.fire.ts.month.2) +
+  autolayer(Yhat.Holt, series = "Point Forecasts") +
+  ggtitle("Forecasts for Monthly Frequency of Fire Incidents using HoltWinters") +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
+        legend.position = "bottom")
+
+#checking accuracy
+accuracy(dif.fcast.monthly)
+```
+
+Multi-step forecasting for daily data
+
+```{r, eval=FALSE}
+#getting differenced training and test sets 
+y.dif.2 = msts(gso.fire.ts.2.dif, seasonal.periods=c(7,365.25))
+dif.training.tbats.2 = subset(y.dif.2, end=length(y.dif.2)-151)
+dif.test.tbats.2 = subset(y.dif.2, start=length(y.dif.2)-150)
+dif.daily.train.tbats.2 = tbats(dif.training.tbats.2)
+dif.train.fc = forecast(dif.daily.train.tbats.2, h=151)
+
+#getting point forecasts 
+dYhat.tbats = dif.train.fc$mean
+
+#setting up normal ts training and test sets 
+y.2 = msts(gso.fire.ts.2, seasonal.periods=c(7,365.25))
+training.tbats.2 = subset(y.2, end=length(y.2)-151)
+test.tbats.2 = subset(y.2, start=length(y.2)-150)
+
+#reverting back to original points   
+Yhat.tbats = cumsum(c(training.tbats.2[length(training.tbats.2)], dYhat.tbats))
+Yhat.tbats = ts(Yhat.tbats, start = c(2022, 1), frequency = 365)
+
+autoplot(training.tbats.2) + 
+  autolayer(Yhat.tbats, series="Point Forecasts") + 
+  autolayer(test.tbats.2, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step TBATS Daily Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  coord_cartesian(xlim = c(2020, 2023)) +
+  theme(legend.position = "bottom")
+
+dif.daily.test.tbats.2 = tbats(dif.test.tbats.2)
+accuracy(dif.daily.test.tbats.2)
+```
+
+```{r, eval=FALSE}
+#multi-step ARIMA forecast for daily data
+training.arima = subset(gso.fire.ts.2, end=length(gso.fire.ts.2)-151)
+test.arima = subset(gso.fire.ts.2, start=length(gso.fire.ts.2)-150)
+daily.train.arima = auto.arima(training.arima)
+fc.train.arima = forecast(daily.train.arima, h=151)
+
+autoplot(fc.train.arima) + 
+  autolayer(test.arima, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Daily Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  coord_cartesian(xlim = c(2020, 2023)) +
+  theme(legend.position = "bottom")
+
+daily.test.arima = arima(test.arima)
+accuracy(daily.test.arima)
+```
+
+```{r, eval=FALSE}
+#time series combination
+train = window(gso.fire.ts.2, end=c(2019, 12))
+h = length(gso.fire.ts.2) - length(train)
+
+#ARIMA model 
+ARIMA = forecast::forecast(auto.arima(train, lambda=0, biasadj=TRUE), h=h)
+
+#TBATS model 
+train.tbats = msts(gso.fire.ts.2.dif, end=c(2019,12), seasonal.periods = c(7,365.25))
+TBATS = forecast::forecast(tbats(train.tbats, biasadj = TRUE), h=h)
+dYhat.combo = TBATS$mean
+
+Yhat.combo = cumsum(c(train[length(train)], dYhat.combo))
+Yhat.combo = ts(Yhat.combo, start = c(2019, 12), frequency = 365)
+Combination = (ARIMA[["mean"]] + Yhat.combo)/2
+true.daily = gso.fire.ts %>%
+  filter(AlarmDate2 >= as.Date("2019/12/01") & AlarmDate2 <= as.Date("2021/05/31"))
+true.daily.ts = ts(true.daily$n, 
+                            start = c(2019,12), end = c(2021,153), 
+                            frequency = 365)
+
+autoplot(train) +
+  autolayer(true.daily.ts) +
+  autolayer(Combination, series="Combination", alpha=0.8) +
+  autolayer(ARIMA, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo, series="TBATS", alpha=0.7) +
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  ggtitle("Time Series Combination for Daily Frequency of Fire Incidents") + 
+  theme(legend.position = "bottom")
+
+c(ARIMA = accuracy(ARIMA, gso.fire.ts.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo, gso.fire.ts.2)["Test set", "RMSE"],
+  Combination =
+    accuracy(Combination, gso.fire.ts.2)["Test set", "RMSE"])
+```
+
+Multi-step forecasting for monthly data
+
+```{r, eval=FALSE}
+#multi-step TBATS
+y2.dif.monthly = msts(gso.fire.ts.month.2.dif, seasonal.periods=12)
+dif.training.tbats.2.monthly = subset(y2.dif.monthly, end=length(y2.dif.monthly)-5)
+dif.test.tbats.2.monthly = subset(y2.dif.monthly, start=length(y2.dif.monthly)-4)
+dif.train.tbats.2.monthly = tbats(dif.training.tbats.2.monthly)
+dif.fc.train.tbats.2.monthly = forecast(dif.train.tbats.2.monthly, h=5)
+dYhat.ms.tbats.monthly = dif.fc.train.tbats.2.monthly$mean
+
+y2.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
+training.tbats.monthly.2 = subset(y2.monthly, end=length(y2.monthly)-5)
+test.tbats.monthly.2 = subset(y2.monthly, start=length(y2.monthly)-4)
+
+Yhat.ms.tbats.monthly = cumsum(c(training.tbats.monthly.2[length(training.tbats.monthly.2)],
+                                 dYhat.ms.tbats.monthly))
+Yhat.ms.tbats.monthly = ts(Yhat.ms.tbats.monthly, start = c(2022,01), frequency=12)
+
+autoplot(training.tbats.monthly.2) + 
+  autolayer(Yhat.ms.tbats.monthly, series="Point Forecasts") + 
+  autolayer(test.tbats.monthly.2, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step TBATS Monthly Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  theme(legend.position = "bottom", title=element_text(size=10)) + 
+  theme(axis.text.x = element_text(angle = 90))
+
+dif.test.tbats.2.monthly = tbats(dif.test.tbats.2.monthly)
+accuracy(dif.test.tbats.2.monthly)
+```
+
+```{r, eval=FALSE}
+#multi-step ARIMA
+training.arima.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test.arima.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+train.arima.monthly.3 = auto.arima(training.arima.monthly)
+fc.train.arima.monthly = forecast(train.arima.monthly.3, h=5)
+
+autoplot(fc.train.arima.monthly) + 
+  autolayer(test.arima.monthly, series="Test Set", alpha = 0.7) + 
+  ggtitle("Multi-Step ARIMA Monthly Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") + 
+  coord_cartesian(xlim = c(2018, 2023)) +
+  theme(legend.position = "bottom") + 
+  theme(axis.text.x = element_text(angle = 90), title = element_text(size=9), 
+        legend.position = "bottom")
+
+test.arima.monthly.3 = arima(test.arima.monthly)
+accuracy(test.arima.monthly.3)
+```
+
+```{r, eval=FALSE}
+#multi-step HoltWinters
+dif.training.HW.monthly = subset(gso.fire.ts.month.2.dif, end=length(gso.fire.ts.month.2.dif)-5)
+dif.test.HW.monthly = subset(gso.fire.ts.month.2.dif, start=length(gso.fire.ts.month.2.dif)-4)
+dif.train.HW.monthly = HoltWinters(dif.training.HW.monthly)
+dif.fc.HW = forecast::forecast(dif.train.HW.monthly, h=5)
+
+dYhat.ms.HW = dif.fc.HW$mean
+Yhat.ms.HW = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.ms.HW))
+Yhat.ms.HW = ts(Yhat.ms.HW, start = c(2022,01,01), frequency=12)
+
+training.HW.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test.HW.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+true.count.monthly = ts(gso.fire.ts.month.2, start=c(2010,07,01), end=c(2021,12,31), frequency=12)
+
+autoplot(training.HW.monthly) + 
+  autolayer(Yhat.ms.HW, series = "Point Forecasts") + 
+  autolayer(test.HW.monthly, series = "Test Set") + 
+  ggtitle("Multi-Step HoltWinters Monthly Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9))
+
+accuracy(Yhat.ms.HW, gso.fire.ts.month.2)
+```
+
+```{r, eval=FALSE}
+#multi-step HoltWinters
+dif.training.HW.monthly = subset(gso.fire.ts.month.2.dif, end=length(gso.fire.ts.month.2.dif)-5)
+dif.test.HW.monthly = subset(gso.fire.ts.month.2.dif, start=length(gso.fire.ts.month.2.dif)-4)
+dif.train.HW.monthly = HoltWinters(dif.training.HW.monthly)
+dif.fc.HW = forecast::forecast(dif.train.HW.monthly, h=5)
+
+dYhat.ms.HW = dif.fc.HW$mean
+Yhat.ms.HW = cumsum(c(gso.fire.ts.month.2[length(gso.fire.ts.month.2)],dYhat.ms.HW))
+Yhat.ms.HW = ts(Yhat.ms.HW, start = c(2022,01,01), frequency=12)
+
+training.HW.monthly = subset(gso.fire.ts.month.2, end=length(gso.fire.ts.month.2)-5)
+test.HW.monthly = subset(gso.fire.ts.month.2, start=length(gso.fire.ts.month.2)-4)
+true.count.monthly = ts(gso.fire.ts.month.2, start=c(2010,07,01), end=c(2021,12,31), frequency=12)
+
+autoplot(training.HW.monthly) + 
+  autolayer(Yhat.ms.HW, series = "Point Forecasts") + 
+  autolayer(test.HW.monthly, series = "Test Set") + 
+  ggtitle("Multi-Step HoltWinters Monthly Forecasts of Frequency of Fire Incidents") + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9))
+
+accuracy(Yhat.ms.HW, gso.fire.ts.month.2)
+```
+
+```{r, eval=FALSE}
+#Time series combination for monthly
+train.monthly.2 = window(gso.fire.ts.month.2, end=c(2021, 05))
+h.monthly.2 = length(gso.fire.ts.month.2) - length(train.monthly.2)
+
+#ARIMA model 
+ARIMA.monthly.2 = forecast::forecast(auto.arima(train.monthly.2, lambda=0, biasadj=TRUE),
+                                   h=h.monthly.2)
+
+#TBATS model 
+train.tbats.monthly.2 = msts(gso.fire.ts.month.2.dif, end=c(2021,05), seasonal.periods = 12)
+tbats.monthly.2 = forecast::forecast(tbats(train.tbats.monthly.2, biasadj = TRUE),
+                                     h=h.monthly.2)
+dYhat.combo.monthly.2 = tbats.monthly.2$mean
+
+Yhat.combo.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)], dYhat.combo.monthly.2))
+Yhat.combo.monthly.2 = ts(Yhat.combo.monthly.2, start = c(2021,05), frequency = 12)
+
+#HoltWinters Model 
+HW.monthly.2 = forecast::forecast(HoltWinters(gso.fire.ts.month.2.dif), h=h.monthly.2)
+
+dYhat.HW.monthly.2 = HW.monthly.2$mean
+
+Yhat.HW.monthly.2 = cumsum(c(train.monthly.2[length(train.monthly.2)],dYhat.HW.monthly.2))
+Yhat.HW.monthly.2 = ts(Yhat.HW.monthly.2, start = c(2021,05), frequency=12)
+Combination.monthly.2 = (ARIMA.monthly.2[["mean"]] + Yhat.combo.monthly.2 + 
+                           Yhat.HW.monthly.2)/3
+
+y.monthly = msts(gso.fire.ts.month.2, seasonal.periods=12)
+test.monthly = subset(y.monthly, start=length(y.monthly)-12)
+
+autoplot(train.monthly.2) +
+  autolayer(test.monthly, series="True Count") +
+  autolayer(Combination.monthly.2, series="Combination", alpha=0.8) +
+  autolayer(ARIMA.monthly.2, series="ARIMA", PI=F) +
+  autolayer(Yhat.combo.monthly.2, series="TBATS", alpha=0.7) +
+  autolayer(Yhat.HW.monthly.2, series="HoltWinters", alpha=0.7) + 
+  xlab("Date") +
+  ylab("Frequency of Fire Incidents") +
+  ggtitle("Time Series Combination for Monthly Frequency of Fire Incidents") + 
+  theme(axis.text.x = element_text(angle = 90), legend.position = "bottom", 
+        title = element_text(size = 9)) 
+
+c(ARIMA = accuracy(ARIMA.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
+  TBATS = accuracy(Yhat.combo.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
+  HW = accuracy(Yhat.HW.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"],
+  Combination =
+    accuracy(Combination.monthly.2, gso.fire.ts.month.2)["Test set", "RMSE"])
+```
+
+
+### Modeling of Response Time
+```{r, eval=FALSE}
+gso.fire.filtered = gso.fire %>%
+  filter(response_time_seconds < cutoff.response_time) %>% 
+  dplyr::select(response_time_seconds, everything())
+
+gso.fire.filtered = gso.fire.filtered %>%
+  mutate(AlarmTime = case_when(AlarmHour >= 0 & AlarmHour < 6 ~ "0-5", 
+                               AlarmHour >= 6 & AlarmHour < 12 ~ "6-11",
+                               AlarmHour >= 12 & AlarmHour < 18 ~ "12-17",
+                               TRUE ~ "18-23"))
+```
+
+### Linear Regression Model
+
+```{r, eval=FALSE}
+#manual variable selection
+lm.res.time = lm(response_time_seconds ~ TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                   shift + Month + AlarmTime + NatureCode, data = gso.fire.filtered)
+summary(lm.res.time)
+round(coef(lm.res.time), 4)
+```
+
+
+```{r, eval=FALSE}
+lm.res.time.select = stepAIC(lm.res.time)
+summary(lm.res.time.select)
+```
+
+```{r, eval=FALSE}
+#Lasso variable selection
+las.Mod <- glmnet(as.matrix(gso.fire.filtered[,-1]), gso.fire.filtered$response_time_seconds, family = "gaussian")
+plot(las.Mod)
+```
+
+### Random Forest
+```{r, eval=FALSE}
+#Random Forrest with ranger function
+gso.fire.filtered.rf = gso.fire.filtered %>%
+  dplyr::select(response_time_seconds,TotalStaffOnIncident , FireDistrict , DayOfWeek , 
+           shift , Month , AlarmTime , NatureCode)
+
+RF.Mod.Ranger <- ranger(response_time_seconds~TotalStaffOnIncident + FireDistrict + DayOfWeek + 
+                         shift + Month + AlarmTime + NatureCode,
+                       data = gso.fire.filtered.rf[complete.cases(gso.fire.filtered.rf),], importance = "impurity", num.trees = 500)
+
+variable = names(RF.Mod.Ranger$variable.importance)
+rf.vIMP.df = data.frame(variable = variable, vIMP = RF.Mod.Ranger$variable.importance)
+
+ggplot(rf.vIMP.df, aes(x=reorder(variable,vIMP), y=vIMP,fill=variable))+ 
+  geom_bar(stat="identity", position="dodge", show.legend = FALSE)+ coord_flip()+
+  ylab("Variable Importance")+
+  xlab("")+
+  ggtitle("Information Value Summary")
+
+```
+
+
